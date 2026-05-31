@@ -32,11 +32,10 @@ const toolsDropdown = document.getElementById('tools-dropdown');
 let fontSize = 11;
 let isPrintLayout = true;
 let isAutoSaveEnabled = true; // ON by default
-
-// --- Tab System Storage States ---
-let tabs = [];
-let currentTabId = 1;
-let nextTabId = 2;
+// --- Document System Storage States ---
+let documents = [];
+let currentdocumentId = 1;
+let nextdocumentId = 2;
 
 // --- File System Access API Handles ---
 let localFileHandle = null; 
@@ -49,9 +48,10 @@ function initWorkspace() {
     if (savedData) {
         try {
             const parsed = JSON.parse(savedData);
-            tabs = parsed.tabs;
-            currentTabId = parsed.currentTabId;
-            nextTabId = parsed.nextTabId;
+            // Backward compatibility fallback to safely migrate older session arrays
+            documents = parsed.documents || parsed.tabs || [];
+            currentdocumentId = parsed.currentdocumentId || parsed.currentTabId || 1;
+            nextdocumentId = parsed.nextdocumentId || parsed.nextTabId || 2;
             
             // Restore toggle preference if it was explicitly saved previously
             if (parsed.hasOwnProperty('isAutoSaveEnabled')) {
@@ -60,27 +60,30 @@ function initWorkspace() {
         } catch (e) {
             alert("Local recovery corrupted. Clearing frame registry.");
             console.error("Local recovery corrupted. Clearing frame registry.");
-            loadDefaultTabState();
+            loadDefaultdocumentState();
         }
     } else {
         console.log("No saved date found")
-        loadDefaultTabState();
+        loadDefaultdocumentState();
+    }
+
+    if (!documents || documents.length === 0) {
+        loadDefaultdocumentState();
     }
 
     // Render workspace target nodes
-    const activeTab = tabs.find(t => t.id === currentTabId);
-    console.log(`${activeTab}`)
-    if (activeTab) {
-        editor.innerHTML = activeTab.content;
-        docNameInput.value = activeTab.name;
-        document.getElementById('note-pad').value = activeTab.notePad || '';
-        document.title = `${activeTab.name} - Freedom Docs`;
-        console.log(`Workspace Title: ${activeTab.name}`)
+    const activedocument = documents.find(t => t.id === currentdocumentId);
+    if (activedocument) {
+        editor.innerHTML = activedocument.content;
+        docNameInput.value = activedocument.name;
+        document.getElementById('note-pad').value = activedocument.notePad || '';
+        document.title = `${activedocument.name} - Freedom Docs`;
+        console.log(`Workspace Title: ${activedocument.name}`)
     }
     
     // Sync Visual State of the Switch UI matching Preference Rules
     updateSwitchUI();
-    renderTabs();
+    renderdocuments();
 }
 
 // --- Toggle Controller Operation Function ---
@@ -95,7 +98,7 @@ function toggleAutoSaveState(event) {
         // Instantly force flush changes to memory if turning on
         triggerMemoryAutoSave();
     } else {
-        // If turned off, clean out browser memory but retain internal tab matrices array
+        // If turned off, clean out browser memory but retain internal document matrices array
         localStorage.removeItem('freedom_docs_workspace');
     }
 }
@@ -122,46 +125,33 @@ function updateSwitchUI() {
 function triggerMemoryAutoSave() {
     if (!isAutoSaveEnabled) return; // Block memory footprint sync operations if disabled
 
-    // Force active workspace changes into the primary tab structural matrix state array
-    const currentTab = tabs.find(t => t.id === currentTabId);
-    if (currentTab) {
-        currentTab.content = editor.innerHTML;
-        currentTab.notePad = document.getElementById('note-pad').value;
+    // Force active workspace changes into the primary document structural matrix state array
+    const currentdocument = documents.find(t => t.id === currentdocumentId);
+    if (currentdocument) {
+        currentdocument.content = editor.innerHTML;
+        currentdocument.notePad = document.getElementById('note-pad').value;
     }
 
     const payload = {
-        tabs: tabs,
-        currentTabId: currentTabId,
-        nextTabId: nextTabId,
+        documents: documents,
+        currentdocumentId: currentdocumentId,
+        nextdocumentId: nextdocumentId,
         isAutoSaveEnabled: isAutoSaveEnabled // Persist configuration flag state parameter
     };
     localStorage.setItem('freedom_docs_workspace', JSON.stringify(payload));
 }
 
-function loadDefaultTabState() {
+function loadDefaultdocumentState() {
     //sets precedent for new documents
-    tabs = [{ id: 1, name: 'Untitled Document', content: 'Type here...', notePad: '', isStarred: false }];
-    currentTabId = 1;
-    nextTabId = 2;
+    documents = [{ id: 1, name: 'Untitled Document', content: 'Type here...', notePad: '', isbookmarked: false }];
+    currentdocumentId = 1;
+    nextdocumentId = 2;
     document.title = "Untitled Document - Freedom Docs";
 }
 
 // --- Direct Local File System Auto-Save Trigger Sync ---
 async function triggerFileAutoSave() {
-    if (!localFileHandle) return; // Silent return if file link hasn't been established
-    
-    try {
-        const turndownService = new TurndownService();
-        const markdown = turndownService.turndown(editor.innerHTML);
-        
-        // Request a write stream to the established user OS storage file location
-        const writable = await localFileHandle.createWritable();
-        await writable.write(markdown);
-        await writable.close();
-        console.log("Auto-saved mutations cleanly committed directly to host file platform.");
-    } catch (err) {
-        console.error("Local file system stream access error context:", err);
-    }
+    if (!localFileHandle) return; // Silent return if file
 }
 
 // Global hook to catch workspace state mutations across text typing workflows
@@ -174,7 +164,8 @@ function handleWorkspaceMutation() {
 // --- Link Active Document Workspace directly to a true local file handle ---
 async function linkWorkspaceToFileSystem() {
     if (!window.showSaveFilePicker) {
-        alert("Your current web browser environment does not support persistent directory write access loops.");
+        alert("Your current web browser does not support persistent directory write access loops (this is where this file saves your work to a folder on your machine). Please use an updated browser.");
+        console.error("Your current web browser does not support persistent directory write access loops.");
         return;
     }
     try {
@@ -187,10 +178,11 @@ async function linkWorkspaceToFileSystem() {
         };
         // User opens OS file dialog picker once
         localFileHandle = await window.showSaveFilePicker(options);
-        alert(`Linked successfully! Changes on this specific tab will now automatically stream down directly to your machine.`);
+        alert(`Linked successfully!`);
         triggerFileAutoSave();
     } catch (err) {
-        console.log("File handle handshake connection sequence aborted: ", err);
+        console.error("File handle handshake connection sequence aborted: ", err);
+        alert("File handle handshake connection sequence aborted: ", err);
     }
 }
 
@@ -215,11 +207,11 @@ function submitBugReport(e) {
     e.preventDefault();
     const userEmail = document.getElementById('bug-user-email').value;
     const bugDescription = document.getElementById('bug-desc').value;
-    const activeTab = tabs.find(t => t.id === currentTabId);
-    const tabName = activeTab ? activeTab.name : "Unknown Tab";
+    const activedocument = documents.find(t => t.id === currentdocumentId);
+    const documentName = activedocument ? activedocument.name : "Unknown document";
     
     const developerEmail = "bug.reports@outlook.com"; 
-    const subject = encodeURIComponent(`Bug Report - Freedom Docs: ${tabName}`);
+    const subject = encodeURIComponent(`Bug Report - Freedom Docs: ${documentName}`);
     
     const bodyText = encodeURIComponent(
         `User Contact Email: ${userEmail}\n\n` +
@@ -227,69 +219,78 @@ function submitBugReport(e) {
         `-------------------------------------\n` +
         `DEBUG TELEMETRY SYSTEM LOGS:\n` +
         `-------------------------------------\n` +
-        `Active Tab Workspace: ${tabName}\n` +
+        `Active document Workspace: ${documentName}\n` +
         `Browser App Version: ${navigator.userAgent}\n` +
         `Platform: ${navigator.platform}\n` +
         `Workspace Font Size: ${fontSize}pt\n` +
-        `Print Layout Active: ${isPrintLayout}\n`
+        `Print Layout Active: ${isPrintLayout}\n` +
+        `Auto-Save Enabled: ${isAutoSaveEnabled}\n` +
+        `Number of Open documents: ${documents.length}\n` +
+        `Current Mode: ${document.getElementById('mode-text').innerText}\n` +
+        `-------------------------------------\n` +
+        `Disclaimer: This email will be received by the me, the sole developer and is intended solely for the purpose of improving Freedom Docs. \n` +
+        `Telemetry data is collected to help improve the application, and run completely locally. \n` +
+        `Please avoid including personal information in your report. `
     );
     
     window.location.href = `mailto:${developerEmail}?subject=${subject}&body=${bodyText}`;
     toggleBugModal(false);
 }
 
-// --- Functional Tab Rendering Matrix Engine ---
-function renderTabs() {
-    const tabsContainer = document.getElementById('tabs-container');
-    if (!tabsContainer) return;
-    tabsContainer.innerHTML = '';
+// --- Functional document Rendering Matrix Engine ---
+function renderdocuments() {
+    const documentsContainer = document.getElementById('documents-container');
+    if (!documentsContainer) return;
+    documentsContainer.innerHTML = '';
     
-    tabs.forEach(tab => {
-        const tabEl = document.createElement('div');
-        tabEl.className = `tab ${tab.id === currentTabId ? 'active' : ''}`;
+    // Using 'doc' instead of 'document' to prevent breaking global scope variables
+    documents.forEach(doc => {
+        const documentEl = document.createElement('div');
+        documentEl.className = `document ${doc.id === currentdocumentId ? 'active' : ''}`;
         
         // Wrap switch in an arrow function so the element registers properly
-        tabEl.onclick = () => switchTab(tab.id);
+        documentEl.onclick = () => switchdocument(doc.id);
         
-        // 1. Generate Star Icon Configuration
-        const starSpan = document.createElement('span');
-        starSpan.className = 'material-symbols-outlined star-tab-btn';
-        starSpan.innerText = tab.isStarred ? 'star' : 'star_border';
-        if (tab.isStarred) starSpan.classList.add('starred');
+        // 1. Generate bookmark Icon Configuration
+        const bookmarkSpan = document.createElement('span');
+        bookmarkSpan.className = 'material-symbols-outlined bookmark';
+        bookmarkSpan.innerText = doc.isbookmarked ? 'bookmark' : 'bookmark';
+        if (doc.isbookmarked) bookmarkSpan.classList.add('bookmarked');
         
         // 2. Click Handler Matrix
-        starSpan.onclick = (e) => {
-            e.stopPropagation(); // Block the click from firing switchTab()
-            tab.isStarred = !tab.isStarred;
+        bookmarkSpan.onclick = (e) => {
+            e.stopPropagation(); // Block the click from firing switchdocument()
+            doc.isbookmarked = !doc.isbookmarked;
             
             // Instantly update visual local DOM state
-            starSpan.innerText = tab.isStarred ? 'star' : 'star_border';
-            starSpan.classList.toggle('starred', tab.isStarred);
+            bookmarkSpan.innerText = doc.isbookmarked ? 'bookmark' : 'bookmark';
+            bookmarkSpan.style.fontVariationSettings = "'FILL' 1";
+            bookmarkSpan.classList.toggle('bookmarked', doc.isbookmarked);
             
             // Persist mutation array to localStorage
             triggerMemoryAutoSave();
         };
         
-        // 3. Tab Title Configuration
+        // 3. document Title Configuration
         const nameSpan = document.createElement('span');
-        nameSpan.id = `tab-title-node-${tab.id}`;
-        nameSpan.innerText = tab.name;
+        nameSpan.id = `document-title-node-${doc.id}`;
+        nameSpan.innerText = doc.name;
         nameSpan.style.overflow = "hidden";
         nameSpan.style.textOverflow = "ellipsis";
         nameSpan.style.whiteSpace = "nowrap";
         nameSpan.style.maxWidth = "180px";
-        nameSpan.title = "Double-click to rename tab";
+        nameSpan.title = "Double-click to rename document";
         
         nameSpan.ondblclick = (e) => {
             e.stopPropagation();
-            const newName = prompt("Rename tab title:", tab.name);
+            const newName = prompt("Rename document title:", doc.name);
             if (newName && newName.trim() !== "") {
-                tab.name = newName.trim();
-                nameSpan.innerText = tab.name;
+                doc.name = newName.trim();
+                nameSpan.innerText = doc.name;
                 
-                if (tab.id === currentTabId) {
-                    if (docNameInput) docNameInput.value = tab.name;
-                    document.title = `${tab.name} - Freedom Docs`;
+                if (doc.id === currentdocumentId) {
+                    if (docNameInput) docNameInput.value = doc.name;
+                    document.title = `${doc.name} - Freedom Docs`;
                 }
                 triggerMemoryAutoSave();
             }
@@ -297,108 +298,107 @@ function renderTabs() {
         
         // 4. Close Configuration
         const closeSpan = document.createElement('span');
-        closeSpan.className = 'material-symbols-outlined close-tab-btn';
+        closeSpan.className = 'material-symbols-outlined close-document-btn';
         closeSpan.innerText = 'close';
-        closeSpan.onclick = (e) => { e.stopPropagation(); closeTab(tab.id); };
+        closeSpan.onclick = (e) => { e.stopPropagation(); closedocument(doc.id); };
         
         // Append all elements left-to-right structurally
-        tabEl.appendChild(starSpan);
-        tabEl.appendChild(nameSpan);
-        tabEl.appendChild(closeSpan);
-        tabsContainer.appendChild(tabEl);
+        documentEl.appendChild(bookmarkSpan);
+        documentEl.appendChild(nameSpan);
+        documentEl.appendChild(closeSpan);
+        documentsContainer.appendChild(documentEl);
     });
 }
 
-function switchTab(id) {
-    if (id === currentTabId) return;
+function switchdocument(id) {
+    if (id === currentdocumentId) return;
     
-    // Sever active connection handle to ensure we don't overwrite alternative tab files
+    // Sever active connection handle to ensure we don't overwrite alternative document files
     localFileHandle = null; 
 
-    const currentTab = tabs.find(t => t.id === currentTabId);
-    if (currentTab) {
-        currentTab.content = editor.innerHTML;
-        currentTab.notePad = document.getElementById('note-pad').value;
+    const currentdocument = documents.find(t => t.id === currentdocumentId);
+    if (currentdocument) {
+        currentdocument.content = editor.innerHTML;
+        currentdocument.notePad = document.getElementById('note-pad').value;
     }
 
-    currentTabId = id;
-    const targetTab = tabs.find(t => t.id === currentTabId);
-    if (targetTab) {
-        editor.innerHTML = targetTab.content;
-        docNameInput.value = targetTab.name;
-        document.getElementById('note-pad').value = targetTab.notePad || '';
-        document.title = `${targetTab.name} - Freedom Docs`;
+    currentdocumentId = id;
+    const targetdocument = documents.find(t => t.id === currentdocumentId);
+    if (targetdocument) {
+        editor.innerHTML = targetdocument.content;
+        docNameInput.value = targetdocument.name;
+        document.getElementById('note-pad').value = targetdocument.notePad || '';
+        document.title = `${targetdocument.name} - Freedom Docs`;
     }
-    renderTabs();
+    renderdocuments();
     updateUI();
     triggerMemoryAutoSave();
 }
 
-function createNewTab() {
+function createNewdocument() {
     localFileHandle = null;
 
-    const currentTab = tabs.find(t => t.id === currentTabId);
-    if (currentTab) {
-        currentTab.content = editor.innerHTML;
-        currentTab.notePad = document.getElementById('note-pad').value;
+    const currentdocument = documents.find(t => t.id === currentdocumentId);
+    if (currentdocument) {
+        currentdocument.content = editor.innerHTML;
+        currentdocument.notePad = document.getElementById('note-pad').value;
     }
 
-    // Inside createNewTab() ...
-    const newId = nextTabId++;
-    const newName = `Untitled Document (${tabs.length + 1})`;
-    const newTab = { 
+    const newId = nextdocumentId++;
+    const newName = `Untitled Document (${documents.length + 1})`;
+    const newdocument = { 
         id: newId, 
         name: newName, 
         content: 'Type here...', 
         notePad: '',
-        isStarred: false // New baseline parameter
+        isbookmarked: false 
     };
     
-    tabs.push(newTab);
-    currentTabId = newId;
+    documents.push(newdocument);
+    currentdocumentId = newId;
     
-    editor.innerHTML = newTab.content;
-    docNameInput.value = newTab.name;
+    editor.innerHTML = newdocument.content;
+    docNameInput.value = newdocument.name;
     document.getElementById('note-pad').value = '';
     document.title = `${newName} - Freedom Docs`;
     
-    renderTabs();
+    renderdocuments();
     updateUI();
     triggerMemoryAutoSave();
 }
 
-function closeTab(id) {
-    if (tabs.length === 1) {
-        alert("Workspace must preserve at least one active tab record frame.");
+function closedocument(id) {
+    if (documents.length === 1) {
+        alert("Workspace must preserve at least one active document record frame.");
         return;
     }
     
-    const index = tabs.findIndex(t => t.id === id);
+    const index = documents.findIndex(t => t.id === id);
     if (index === -1) return;
     
-    tabs.splice(index, 1);
+    documents.splice(index, 1);
 
-    if (currentTabId === id) {
+    if (currentdocumentId === id) {
         localFileHandle = null;
-        const structuralFallbackTab = tabs[index] || tabs[index - 1];
-        currentTabId = structuralFallbackTab.id;
-        editor.innerHTML = structuralFallbackTab.content;
-        docNameInput.value = structuralFallbackTab.name;
-        document.getElementById('note-pad').value = structuralFallbackTab.notePad || '';
-        document.title = `${structuralFallbackTab.name} - Freedom Docs`;
+        const structuralFallbackdocument = documents[index] || documents[index - 1];
+        currentdocumentId = structuralFallbackdocument.id;
+        editor.innerHTML = structuralFallbackdocument.content;
+        docNameInput.value = structuralFallbackdocument.name;
+        document.getElementById('note-pad').value = structuralFallbackdocument.notePad || '';
+        document.title = `${structuralFallbackdocument.name} - Freedom Docs`;
     }
-    renderTabs();
+    renderdocuments();
     updateUI();
     triggerMemoryAutoSave();
 }
 
 docNameInput.addEventListener('input', () => {
-    const currentTab = tabs.find(t => t.id === currentTabId);
-    if (currentTab) {
-        currentTab.name = docNameInput.value || 'Untitled Document';
-        const liveTabLabel = document.getElementById(`tab-title-node-${currentTabId}`);
-        if (liveTabLabel) liveTabLabel.innerText = currentTab.name;
-        document.title = `${currentTab.name} - Freedom Docs`;
+    const currentdocument = documents.find(t => t.id === currentdocumentId);
+    if (currentdocument) {
+        currentdocument.name = docNameInput.value || 'Untitled Document';
+        const livedocumentLabel = document.getElementById(`document-title-node-${currentdocumentId}`);
+        if (livedocumentLabel) livedocumentLabel.innerText = currentdocument.name;
+        document.title = `${currentdocument.name} - Freedom Docs`;
         triggerMemoryAutoSave();
     }
 });
@@ -412,7 +412,6 @@ function closeMenus() {
     if(helpDropdown) helpDropdown.classList.remove('show'); if(helpBtn) helpBtn.classList.remove('active');
     if(toolsDropdown) toolsDropdown.classList.remove('show'); if(toolsBtn) toolsBtn.classList.remove('active');
     if(formatBtn) formatBtn.addEventListener('click', (e) => { e.stopPropagation(); closeMenus(); formatDropdown.classList.add('show'); formatBtn.classList.add('active'); });
-    // Add the Insert menu to the close loop
     if(insertDropdown) insertDropdown.classList.remove('show'); if(insertBtn) insertBtn.classList.remove('active'); 
 }
 
@@ -491,6 +490,7 @@ function exec(cmd, val = null) {
     handleWorkspaceMutation();
 }
 
+fnSizeDir = 0;
 function changeSize(dir) {
     if (editor.contentEditable === "false") return;
     fontSize += dir;
@@ -517,7 +517,7 @@ function shareEmail() {
 function renameDoc() { docNameInput.focus(); docNameInput.select(); }
 
 function moveToBin() {
-    if(confirm("Are you sure you want to completely clear the workspace layout parameters on this specific tab?")) {
+    if(confirm("Are you sure you want to completely clear the workspace layout parameters on this specific document?")) {
         editor.innerHTML = 'Type here...';
         handleWorkspaceMutation();
     }
@@ -536,12 +536,12 @@ fileInput.addEventListener('change', (e) => {
     reader.onload = (event) => { 
         editor.innerHTML = event.target.result.replace(/\n/g, '<br>'); 
         
-        const activeTab = tabs.find(t => t.id === currentTabId);
-        if (activeTab) {
-            activeTab.name = name;
-            activeTab.content = editor.innerHTML;
+        const activedocument = documents.find(t => t.id === currentdocumentId);
+        if (activedocument) {
+            activedocument.name = name;
+            activedocument.content = editor.innerHTML;
             document.title = `${name} - Freedom Docs`;
-            renderTabs();
+            renderdocuments();
         }
         handleWorkspaceMutation();
     };
@@ -601,32 +601,6 @@ editor.onmouseup = updateUI;
 
 // Execute initialization runtime load sequence
 initWorkspace();
-
-function sendBugReportEmail() {
-    const developerEmail = "bug.reports@outlook.com"; // support email
-    const activeTab = tabs.find(t => t.id === currentTabId);
-    const tabName = activeTab ? activeTab.name : "Unknown Tab";
-    
-    const subject = encodeURIComponent(`Bug Report - Freedom Docs: ${tabName}`);
-    
-    // Constructing an informative body to help you debug quicker
-    const bodyText = encodeURIComponent(
-        `[Please describe the bug and steps to reproduce below]\n\n` +
-        `\n\n` +
-        `-------------------------------------\n` +
-        `DEBUG TELEMETRY SYSTEM LOGS:\n` +
-        `-------------------------------------\n` +
-        `Active Tab: ${tabName}\n` +
-        `Browser App Version: ${navigator.userAgent}\n` +
-        `Platform: ${navigator.platform}\n` +
-        `Workspace Font Size: ${fontSize}pt\n` +
-        `Print Layout Active: ${isPrintLayout}\n`
-    );
-    
-    // Trigger the OS mail client redirect
-    window.location.href = `mailto:${developerEmail}?subject=${subject}&body=${bodyText}`;
-}
-
 // --- Insert Menu Functional Execution Engine ---
 
 async function execAction(action) {
@@ -649,7 +623,7 @@ async function execAction(action) {
     handleWorkspaceMutation();
     closeMenus();
 }
-
+// Insert functionality 
 function insertElement(type) {
     if (editor.contentEditable === "false") return;
     editor.focus(); 
@@ -713,7 +687,7 @@ function execFormat(command) {
     closeMenus();
 }
 // =======================================================
-// CONTEXT RICH TEXT TOOLBAR FUNCTIONAL MODULE ENGINE
+// TOOLBAR FUNCTIONALITY AND STATE MANAGEMENT
 // =======================================================
 
 function execTool(command, value = null) {
@@ -729,7 +703,7 @@ function execTool(command, value = null) {
         updateUI();
     }
 }
-
+//changes font size to be applied to selected text or future text if no selection, with a live numerical display in the toolbar
 function adjustToolbarFontSize(direction) {
     if (editor.contentEditable === "false") return;
     
@@ -757,7 +731,8 @@ function adjustToolbarFontSize(direction) {
     }
 }
 
-// Extend your existing selection status listeners array framework to monitor state rules
+// Add bold, italic, underline, and strikethrough state synchronization 
+// to update the toolbar button active states based on the current selection
 function syncToolbarSelectionStates() {
     const boldActive = document.queryCommandState('bold');
     const italicActive = document.queryCommandState('italic');
@@ -785,16 +760,14 @@ editor.addEventListener('mouseup', syncToolbarSelectionStates);
 window.addEventListener('load', syncToolbarSelectionStates);
 
 // =======================================================
-// TOOLBAR REPLACEMENT ADDITIONS ACTION ENGINES
+// TOOLS UTILITIES ENGINES
 // =======================================================
 
 // Tracks the local toggle states independently
 let isWorkspaceZoomed = false;
 let isDarkThemeActive = false;
 
-/**
- * Addition 2: Workspace Zoom Focused Layout Frame Toggle
- */
+// Zoom 
 function toggleWorkspaceZoom() {
     const targetWorkspace = document.getElementById('editor-container');
     const zoomButton = document.getElementById('t-btn-zoom');
@@ -811,9 +784,7 @@ function toggleWorkspaceZoom() {
     }
 }
 
-/**
- * Addition 3: Global Base Application Theme Context Switcher
- */
+// Dark/Light Mode
 function toggleDarkModeLayout() {
     const rootBody = document.body;
     const darkButton = document.getElementById('t-btn-dark');
@@ -824,70 +795,44 @@ function toggleDarkModeLayout() {
     if (darkButton) {
         darkButton.classList.toggle('active', isDarkThemeActive);
     }
-    
-    // Optional: If you want this option to survive tab refreshes,
-    // you could pipe this flag to localStorage right here.
 }
-
-// =======================================================
-// EXTENDED TOOLS UTILITIES ENGINE CONTROLLERS
-// =======================================================
 
 let voiceRecognitionInstance = null;
 let isVoiceListening = false;
 
-// =======================================================
-// FIXED TOOLS ROUTING ENGINE AND MODAL INTERFACE VIA DROPDOWN
-// =======================================================
-
 function runToolAction(action) {
     closeMenus(); // Clean out visible dropdown states instantly
-    
-    // FIXED: Routed cleanly to the custom modal display card instead of the browser alert
     if (action === 'wordCount') {
         openWordCountModal();
-    } 
-    
-    else if (action === 'dictionary') {
+        console.log("Word count modal opened.");
+    } else if (action === 'dictionary') {
         const selectedText = window.getSelection().toString().trim();
         const lookupWord = selectedText || prompt("Enter the word you would like to look up:");
         if (lookupWord) {
             window.open(`https://www.google.com/search?q=define+${encodeURIComponent(lookupWord)}`, '_blank');
+            console.log(`Initiated dictionary lookup for: ${lookupWord}`);
         }
-    } 
-    
-    else if (action === 'translate') {
-        alert("To translate your document offline, select your target text, copy it, and paste into a translation engine.");
-    } 
-    
-    else if (action === 'voiceTyping') {
+    } else if (action === 'voiceTyping') {
         initiateVoiceTypingEngine();
+        console.log("Voice typing engine initiated.");
     }
 }
 
-/**
- * Open Word Count Modal Overlay Frame
- * FIXED: Explicitly unhides the container over the layout body using the flex target rule
- */
 function openWordCountModal() {
-    // Run the metric calculator engine to populate text values into the fields
     if (typeof calculateDocumentMetrics === "function") {
         calculateDocumentMetrics();
     }
-    
+    console.log("Opening word count modal.");
     const modalBackplate = document.getElementById('wordcount-modal-backplate');
     if (modalBackplate) {
-        modalBackplate.style.display = 'flex'; // Unhides the backdrop over the screen viewport
+        modalBackplate.style.display = 'flex'; 
     }
 }
 
-/**
- * Close Word Count Modal Overlay Frame
- */
 function closeWordCountModal() {
     const modalBackplate = document.getElementById('wordcount-modal-backplate');
     if (modalBackplate) {
-        modalBackplate.style.display = 'none'; // Hides the interface gracefully
+        modalBackplate.style.display = 'none'; 
     }
 }
 
@@ -899,7 +844,7 @@ function initiateVoiceTypingEngine() {
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-        alert("Your current browser engine does not support native Web Speech Voice Recognition infrastructure features.");
+        alert("Your current browser does not support Voice Recognition features.");
         return;
     }
 
@@ -935,6 +880,7 @@ function initiateVoiceTypingEngine() {
     voiceRecognitionInstance.onerror = (err) => {
         console.error("Speech capturing operational subsystem fault error context:", err);
         terminateVoiceTrackingState();
+        alert("An error occurred with the voice recognition system. Voice recognition has been terminated. Please try again.");
     };
 
     voiceRecognitionInstance.onend = () => {
@@ -967,17 +913,6 @@ document.addEventListener('keydown', (e) => {
 // =======================================================
 
 let isLivePillTrackingActive = false;
-
-function openWordCountModal() {
-    calculateDocumentMetrics(); // Update calculations inside nodes
-    const modalNode = document.getElementById('wordcount-modal-backplate');
-    if (modalNode) modalNode.style.display = 'flex';
-}
-
-function closeWordCountModal() {
-    const modalNode = document.getElementById('wordcount-modal-backplate');
-    if (modalNode) modalNode.style.display = 'none';
-}
 
 /**
  * Metric Parser Computation Engine Logic Loop
@@ -1039,7 +974,19 @@ function triggerLivePillMetricsRefresh() {
         pillTextNode.innerText = `${currentMetrics.words} words`;
     }
 }
-
+// Zen Mode toggle 
+function toggleZenMode() {
+    console.log("Toggling Zen Mode layout.");
+    // Toggles the sidebar layout
+    document.getElementById('doc-sidebar').classList.toggle('collapsed');
+    
+    // Toggles the toolbar layout
+    const toolbar = document.querySelector('.rich-toolbar');
+    if (toolbar) {
+        toolbar.classList.toggle('collapsed');
+    }
+    console.log("Zen Mode toggled successfully.");
+}
 /**
  * Intercept your application's central mutation listener hooks 
  * to pass processing streams down to tracking panels passively.
@@ -1049,149 +996,3 @@ document.getElementById('editor').addEventListener('input', () => {
         triggerLivePillMetricsRefresh();
     }
 });
-// =======================================================
-// MODULAR WORKSPACE SEARCH AND FIND ENGINE MODULE
-// =======================================================
-
-let activeSearchHighlights = [];
-
-/**
- * Main Orchestrator: Scans, Highlights, or Resets the workspace view
- * @param {string} query - The search term passed from your navbar input
- */
-function executeWorkspaceSearch(query) {
-    // 1. Always clear old highlights first to reset state gracefully
-    clearWorkspaceHighlights();
-
-    const normalizedQuery = query ? query.trim().toLowerCase() : '';
-    if (!normalizedQuery) return; // Exit if search box was cleared
-
-    const editorWorkspace = document.getElementById('editor');
-    if (!editorWorkspace) return;
-
-    // Use a DOM Tree Walker to scan ONLY text nodes (leaves formatting tags safe)
-    const treeWalker = document.createTreeWalker(
-        editorWorkspace,
-        NodeFilter.SHOW_TEXT,
-        null,
-        false
-    );
-
-    const nodesToProcess = [];
-    while (treeWalker.nextNode()) {
-        nodesToProcess.push(treeWalker.currentNode);
-    }
-
-    // Passively track matches without mutating persistent structural markup strings
-    nodesToProcess.forEach(textNode => {
-        const textContent = textNode.nodeValue;
-        const lowercaseContent = textContent.toLowerCase();
-        let matchIndex = lowercaseContent.indexOf(normalizedQuery);
-
-        // Loop handles multiple matches found within a single text string block
-        if (matchIndex !== -1) {
-            const parentElement = textNode.parentNode;
-            
-            // Safety guard: Don't highlight matches inside elements that are already search marks
-            if (parentElement && parentElement.classList.contains('search-mark-highlight')) {
-                return;
-            }
-
-            const fragment = document.createDocumentFragment();
-            let lastIndex = 0;
-
-            while (matchIndex !== -1) {
-                // Append text preceding the match string
-                if (matchIndex > lastIndex) {
-                    fragment.appendChild(document.createTextNode(textContent.substring(lastIndex, matchIndex)));
-                }
-
-                // Create the temporary visual markup indicator token node
-                const highlightWrapper = document.createElement('mark');
-                highlightWrapper.className = 'search-mark-highlight';
-                highlightWrapper.textContent = textContent.substring(matchIndex, matchIndex + normalizedQuery.length);
-                
-                fragment.appendChild(highlightWrapper);
-                activeSearchHighlights.push(highlightWrapper); // Push to tracking register index stack
-
-                lastIndex = matchIndex + normalizedQuery.length;
-                matchIndex = lowercaseContent.indexOf(normalizedQuery, lastIndex);
-            }
-
-            // Append remaining text tail segment if present
-            if (lastIndex < textContent.length) {
-                fragment.appendChild(document.createTextNode(textContent.substring(lastIndex)));
-            }
-
-            // Swap the plain node with the compiled highlight fragment directly on the DOM tree
-            if (parentElement) {
-                parentElement.replaceChild(fragment, textNode);
-            }
-        }
-    });
-}
-
-/**
- * State Reset: Cleanly strips visual highlight layers without altering underlying document content
- */
-function clearWorkspaceHighlights() {
-    if (activeSearchHighlights.length === 0) return;
-
-    // Process bottom-up array loops to merge text blocks seamlessly back together
-    activeSearchHighlights.forEach(markElement => {
-        if (markElement && markElement.parentNode) {
-            const parent = markElement.parentNode;
-            const plainTextNode = document.createTextNode(markElement.textContent);
-            
-            parent.replaceChild(plainTextNode, markElement);
-            parent.normalize(); // Collapses adjacent text nodes automatically to avoid structure fragmentation
-        }
-    });
-
-    activeSearchHighlights = [];
-}
-/**
- * UI Helper: Handles manual clearing via the structural 'X' icon link click
- */
-function clearSearchInput() {
-    const searchField = document.getElementById('navbar-search-input');
-    const clearBtn = document.getElementById('navbar-search-clear');
-    
-    if (searchField) {
-        searchField.value = '';
-        searchField.focus();
-    }
-    if (clearBtn) clearBtn.style.display = 'none';
-    
-    // Fire the engine back to strip highlights instantly
-    if (typeof clearWorkspaceHighlights === 'function') {
-        clearWorkspaceHighlights();
-    }
-}
-
-// Observe live entry cycles to reveal/hide the clear icon dynamically
-document.getElementById('navbar-search-input')?.addEventListener('input', (e) => {
-    const clearBtn = document.getElementById('navbar-search-clear');
-    if (clearBtn) {
-        clearBtn.style.display = e.target.value.length > 0 ? 'block' : 'none';
-    }
-});
-const searchField = document.getElementById('navbar-search-input');
-
-if (searchField) {
-    // Listens to character key-up changes to drive real-time highlights seamlessly
-    searchField.addEventListener('input', (e) => {
-        const currentQuery = e.target.value;
-        executeWorkspaceSearch(currentQuery);
-        console.log(`Searching for: ${currentQueryw}`)
-    });
-
-    //Strips highlights instantly if user presses the Escape key
-    searchField.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            searchField.value = '';
-            clearWorkspaceHighlights();
-            searchField.blur();
-        }
-    });
-}

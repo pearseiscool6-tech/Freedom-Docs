@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Untitled Document - Freedom Docs</title>
-    <link href="stuff.css" rel="stylesheet" />
     <script src="turndown.js"></script>
     <link href="styles.css" rel="stylesheet" />
 </head>
@@ -25,7 +24,7 @@
                     <div class="menu-item-container" title="Download, Delete, Print & more">
                         <span class="menu-bar-btn" id="file-menu-btn">File</span>
                         <div class="dropdown-menu" id="file-dropdown">
-                            <div class="menu-option" onclick="createNewTab()">
+                            <div class="menu-option" onclick="createNewdocument()">
                                 <span class="material-symbols-outlined">note_add</span><span class="opt-text">New document workspace</span>
                             </div>
                             <div class="menu-option" onclick="triggerOpenFile()">
@@ -82,11 +81,15 @@
                         <div class="dropdown-menu" id="view-dropdown">
                             <div class="menu-option" onclick="toggleSidebarView()">
                                 <span class="material-symbols-outlined">side_navigation</span>
-                                <span class="opt-text">Toggle tabs sidebar</span>
+                                <span class="opt-text">Toggle documents sidebar</span>
                             </div>
                             <div class="menu-option" onclick="togglePrintLayout()">
                                 <div class="menu-check" id="check-print-layout" style="width:18px; font-weight:bold;">✓</div>
                                 <span class="opt-text">Show print layout</span>
+                            </div>
+                            <div class="menu-option" onclick="toggleZenMode()">
+                                <span class="material-symbols-outlined">self_improvement</span>
+                                <span class="opt-text">Zen Mode</span>
                             </div>
                              <div class="menu-divider"></div>
                             <div class="menu-option" onclick="linkWorkspaceToFileSystem()">
@@ -100,7 +103,7 @@
                 <span class="opt-text">Check for updates (GitHub)</span>
             </div>
         </a>
-        <a href="https://github.com/pearseiscool6-tech/Freedom-Docs?tab=readme-ov-file" target="_blank" style="text-decoration: none; color: inherit;">
+        <a href="https://github.com/pearseiscool6-tech/Freedom-Docs" target="_blank" style="text-decoration: none; color: inherit;">
             <div class="menu-option">
                 <span class="material-symbols-outlined">code</span>
                 <span class="opt-text">View Source Code Repository</span>
@@ -121,11 +124,11 @@
     <div class="dropdown-menu" id="insert-dropdown">
         <div class="menu-option" onclick="execAction('copy')">
             <span class="material-symbols-outlined">content_copy</span>
-            <span class="opt-text">Copy</span>
+            <span class="opt-text">Copy Item</span>
         </div>
         <div class="menu-option" onclick="execAction('paste')">
             <span class="material-symbols-outlined">content_paste</span>
-            <span class="opt-text">Paste</span>
+            <span class="opt-text">Paste Item</span>
         </div>
         <div class="menu-divider"></div>
         <div class="menu-option" onclick="insertElement('image')">
@@ -226,7 +229,7 @@
                     <span class="material-symbols-outlined" style="font-size: 16px;">arrow_drop_down</span>
                 </button>
                 <div class="dropdown-menu right-aligned" id="mode-dropdown">
-                    <div class="menu-option" onclick="setMode('editable')">
+                    <div class="menu-option" onclick="setMode('edidocumentle')">
                         <span class="material-symbols-outlined" style="color: var(--blue-primary)">edit</span>
                         <div style="display:flex; flex-direction:column;">
                             <span class="opt-text" style="font-weight:500;">Editing</span>
@@ -259,20 +262,8 @@
     </div>
 </header>
 
-<div class="rich-toolbar">
+<div class="rich-toolbar" id="toolbar">
     <div class="toolbar-group">
-        <div class="navbar-search-container">
-    <span class="material-symbols-outlined search-bar-icon">search</span>
-    <input 
-        type="text" 
-        id="navbar-search-input" 
-        placeholder="Search document..." 
-        autocomplete="off"
-        title="Search (Press Esc to clear)"
-    >
-    <span class="material-symbols-outlined" id="navbar-search-clear" onclick="clearSearchInput()">close</span>
-    
-</div>
         <button class="tool-btn" onclick="execTool('undo')" title="Undo (Ctrl+Z)">
             <span class="material-symbols-outlined">undo</span>
         </button>
@@ -374,19 +365,19 @@
     <div class="sidebar" id="doc-sidebar">
         <div style="margin-bottom:15px; font-weight:500; display:flex; justify-content:space-between; align-items:center;">
             <span>Documents</span>
-            <span class="material-symbols-outlined" style="font-size:20px; cursor:pointer; color:var(--blue-primary);" onclick="createNewTab()" title="Create new document">add</span>
+            <span class="material-symbols-outlined" style="font-size:20px; cursor:pointer; color:var(--blue-primary);" onclick="createNewdocument()" title="Create new document">add</span>
         </div>
-        <div id="tabs-container"></div>
+        <div id="documents-container"></div>
     </div>
     
     <div class="editor-container" id="editor-container">
-        <div id="editor" class="editor" contenteditable="true">Type here...</div>
+        <div id="editor" class="editor" contentedidocumentle="true">Type here...</div>
     </div>
 
     <div class="sidebar notes-sidebar" id="notes-sidebar">
         <div style="margin-bottom:12px; font-weight:500; display:flex; align-items:center; gap:6px; color:#e37400;">
             <span class="material-symbols-outlined">edit_note</span>
-            <span contenteditable="true">My Sidebar Notes</span>
+            <span contentedidocumentle="true">My Sidebar Notes</span>
         </div>
         <textarea id="note-pad" placeholder="Write document summary notes here side-by-side..." style="width:100%; flex:1; padding:12px; border:1px solid var(--border-color); border-radius:8px; outline:none; resize:none; font-size:14px; line-height:1.4; color:var(--text-main);"></textarea>
     </div>
@@ -407,7 +398,7 @@
             <div style="display:flex; justify-content:space-between;"><span>Italicise selected text</span><kbd style="background:#f1f3f4; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:12px;">Ctrl + I</kbd></div>
             <div style="display:flex; justify-content:space-between;"><span>Undo</span><kbd style="background:#f1f3f4; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:12px;">Ctrl + Z</kbd></div>
             <div style="display:flex; justify-content:space-between;"><span>Redo</span><kbd style="background:#f1f3f4; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:12px;">Ctrl + Y</kbd></div>
-            <div style="display:flex; justify-content:space-between;"><span>Toggle left tab sidebar</span><kbd style="background:#f1f3f4; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:12px;">Ctrl + Alt + A</kbd></div>
+            <div style="display:flex; justify-content:space-between;"><span>Toggle left document sidebar</span><kbd style="background:#f1f3f4; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:12px;">Ctrl + Alt + A</kbd></div>
             <hr style="border:0; border-top:1px solid #e8eaed; margin:4px 0;">
             <div style="display:flex; justify-content:space-between; color:#70757a; font-size:13px;"><span>Rename Document</span><span>Double-click doc label</span></div>
         </div>
@@ -422,7 +413,7 @@
     <div id="wordcount-modal-card">
         <h2 class="modal-title-text">Word count</h2>
         
-        <div class="metrics-table-rows">
+        <div class="metrics-documentle-rows">
             <div class="metric-row">
                 <span class="metric-label">Pages</span>
                 <span id="stat-val-pages" class="metric-value">1</span>

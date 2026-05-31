@@ -34,7 +34,7 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
-        body { background-color: var(--bg-body); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        html, body { background-color: var(--bg-body); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; overflow: hidden; overflow-anchor: none !important; }
         
         .material-symbols-outlined { font-size: 20px; color: var(--text-muted); cursor: pointer; user-select: none; }
 
@@ -142,9 +142,37 @@
         }
         .share-drop-btn .material-symbols-outlined { color: #041e49; font-size: 20px; }
 
+        /* Kill auto-anchoring scrolling jumps globally on containers and fields */
+        #editor-container, .editor-container, .editor {
+            overflow-anchor: none !important; 
+        }
+
         /* --- Toolbars --- */
-        .toolbar-area { background: #fff; padding: 0 16px 8px 16px; }
-        .toolbar { background: var(--bg-toolbar); border-radius: 24px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; }
+        .rich-toolbar-area { background: #fff; padding: 0 16px 8px 16px; }
+        .rich-toolbar { 
+            background: var(--bg-toolbar); 
+            border-radius: 24px; 
+            padding: 6px 12px; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            position: static; 
+            max-height: 120px;
+            transition: max-height 0.25s ease-in-out, padding 0.25s ease-in-out, margin 0.25s ease-in-out, opacity 0.2s ease-in-out;
+        }
+        
+        /* Smooth collapse state that doesn't trigger layout jumps */
+        .rich-toolbar.collapsed { 
+            max-height: 0 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+            opacity: 0 !important;
+            overflow: hidden !important;
+            border: none !important;
+        }
+        
         .divider { width: 1px; height: 20px; background: var(--border-color); margin: 0 4px; }
         
         .tool-btn { background: none; border: none; border-radius: 4px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
@@ -157,12 +185,12 @@
         /* --- Workspace Layout Setup --- */
         .main { display: flex; flex: 1; overflow: hidden; }
         
-        /* Left Tabs Sidebar Configuration */
+        /* Left documents Sidebar Configuration */
         .sidebar { width: 260px; border-right: 1px solid #e8eaed; padding: 16px; font-size: 14px; transition: margin-left 0.2s; background: #fff; display: flex; flex-direction: column; }
         .sidebar.collapsed { margin-left: -260px; }
-        #tabs-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+        #documents-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
         
-        .tab { 
+        .document { 
             padding: 8px 12px; 
             border-radius: 20px; 
             display: flex; 
@@ -174,11 +202,11 @@
             background: transparent;
             transition: background 0.1s;
         }
-        .tab:hover { background: rgba(0,0,0,0.04); }
-        .tab.active { background: #e8f0fe; color: var(--blue-primary); font-weight: 500; }
+        .document:hover { background: rgba(0,0,0,0.04); }
+        .document.active { background: #e8f0fe; color: var(--blue-primary); font-weight: 500; }
         
-        .close-tab-btn { font-size: 16px; border-radius: 50%; padding: 2px; color: var(--text-muted); }
-        .close-tab-btn:hover { background: rgba(0,0,0,0.1); color: #c2185b; }
+        .close-document-btn { font-size: 16px; border-radius: 50%; padding: 2px; color: var(--text-muted); }
+        .close-document-btn:hover { background: rgba(0,0,0,0.1); color: #c2185b; }
 
         /* Right Side Notes Panel Frame Layout */
         .notes-sidebar {
@@ -299,8 +327,8 @@
 }
 
 /* --- Comprehensive Viewport Dark Mode Overrides --- */
-html, 
-body.dark-theme-active {
+body.dark-theme-active,
+html.dark-theme-active {
     background-color: #1e1f20 !important;
     color: #e3e3e3 !important;
     transition: background-color 0.2s ease, color 0.2s ease;
@@ -367,7 +395,7 @@ body.dark-theme-active .menu-divider {
 }
 
 /* Metric Alignment Matrix Setup */
-.metrics-table-rows {
+.metrics-documentle-rows {
     display: flex;
     flex-direction: column;
     margin-bottom: 24px;
@@ -522,7 +550,7 @@ body.dark-theme-active .search-mark-highlight {
     border-radius: 20px;
     padding: 0 12px;
     height: 36px;
-    width: 200px;
+    width: 40px;
     margin-right: auto; /* Pushes all other navbar buttons cleanly to the right */
     box-sizing: border-box;
     transition: background-color 0.15s, box-shadow 0.15s, width 0.2s ease;
@@ -559,20 +587,6 @@ body.dark-theme-active .search-mark-highlight {
     color: #747775;
 }
 
-/* Clear utility button hidden by default until typing starts */
-.search-clear-btn {
-    color: #444746;
-    font-size: 18px !important;
-    cursor: pointer;
-    margin-left: 4px;
-    user-select: none;
-    display: none; 
-}
-
-.search-clear-btn:hover {
-    color: #1f1f1f;
-}
-
 /* --- Dark Theme Presentation Layer Rules --- */
 body.dark-theme-active .navbar-search-container {
     background-color: #2b2a2b !important;
@@ -595,14 +609,6 @@ body.dark-theme-active .search-bar-icon,
 body.dark-theme-active .search-clear-btn {
     color: #c4c7c5 !important;
 }
-/* --- Document Workspace Text Highlights --- */
-.search-mark-highlight {
-    background-color: #ffeb3b !important;
-    color: #000000 !important;
-    border-radius: 2px;
-    padding: 1px 0;
-    box-shadow: 0 0 0 1px rgba(255, 235, 59, 0.5);
-}
 
 /* --- UI Settings Menu Highlights --- */
 .menu-option.setting-match-highlight {
@@ -617,13 +623,6 @@ body.dark-theme-active .search-clear-btn {
     font-weight: 500;
 }
 
-/* --- Dark Theme Adjustments --- */
-body.dark-theme-active .search-mark-highlight {
-    background-color: #e3b20e !important;
-    color: #1e1f20 !important;
-    box-shadow: 0 0 0 1px rgba(227, 178, 14, 0.5);
-}
-
 body.dark-theme-active .menu-option.setting-match-highlight {
     background-color: #413a22 !important;
     border-left-color: #fbbc04;
@@ -633,8 +632,8 @@ body.dark-theme-active .menu-bar-btn.has-match {
     background-color: #004a77 !important;
     color: #c2e7ff !important;
 }
-/* --- Tab Star Interaction Styling --- */
-.star-tab-btn {
+/* --- document bookmark Interaction Styling --- */
+.bookmark-document-btn {
     font-size: 16px !important;
     color: #747775; /* Standard inactive outline */
     cursor: pointer;
@@ -643,54 +642,44 @@ body.dark-theme-active .menu-bar-btn.has-match {
     transition: color 0.15s, transform 0.1s ease-in-out;
 }
 
-.star-tab-btn:hover {
+.bookmark-document-btn:hover {
     color: #444746;
     transform: scale(1.15); /* Slight pop on hover */
 }
 
 /* Active Gold State */
-.star-tab-btn.starred {
+.bookmark-document-btn.bookmarked {
     color: #fbbc04; /* Google Docs Gold */
 }
 
-.star-tab-btn.starred:hover {
+.bookmark-document-btn.bookmarked:hover {
     color: #f2a900;
 }
 
 /* Dark Mode Overrides */
-body.dark-theme-active .star-tab-btn {
+body.dark-theme-active .bookmark-document-btn {
     color: #8e918f;
 }
 
-body.dark-theme-active .star-tab-btn:hover {
+body.dark-theme-active .bookmark-document-btn:hover {
     color: #c4c7c5;
 }
 
-body.dark-theme-active .star-tab-btn.starred {
-    color: #fde293; /* Softened gold for dark mode contrast */
-}
-
-body.dark-theme-active .star-tab-btn.starred:hover {
-    color: #fbbc04;
-}
-/* --- Active Star Blue State --- */
-.star-tab-btn.starred {
+/* --- Active bookmark Blue State --- */
+.bookmark-document-btn.bookmarked {
     color: var(--blue-primary) !important; /* Forces your primary theme blue (#0b57d0) */
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20; /* Dynamically paints the interior */
 }
 
-.star-tab-btn.starred:hover {
+.bookmark-document-btn.bookmarked:hover {
     color: #0842a0 !important; /* Slightly darker rich blue on hover */
 }
 
 /* --- Dark Theme Adjustments --- */
-body.dark-theme-active .star-tab-btn.starred {
+body.dark-theme-active .bookmark-document-btn.bookmarked {
     color: #a8c7fa !important; /* Light pastel blue for healthy dark mode contrast */
 }
 
-body.dark-theme-active .star-tab-btn.starred:hover {
+body.dark-theme-active .bookmark-document-btn.bookmarked:hover {
     color: #c2e7ff !important;
-}
-.star-tab-btn.starred {
-    color: var(--blue-primary) !important;
-    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20; /* Dynamically paints the interior */
 }
