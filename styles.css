@@ -1,0 +1,696 @@
+/* fallback */
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 100 700;
+  src: url(font.woff2) format('woff2');
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+:root {
+            --bg-body: #f8f9fa;
+            --bg-toolbar: #edf2fa;
+            --border-color: #c7c7c7;
+            --text-main: #1f1f1f;
+            --text-muted: #444746;
+            --blue-primary: #0b57d0;
+            --blue-light: #c2e7ff;
+            --blue-hover: #d3e3fd;
+            --menu-shadow: 0 2px 6px 2px rgba(60,64,67,.15);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        .material-symbols-outlined { font-size: 20px; color: var(--text-muted); cursor: pointer; user-select: none; }
+
+        /* --- Navbar / Header --- */
+        header { background: #fff; padding: 8px 16px 4px 16px; display: flex; flex-direction: column; z-index: 1000; }
+        .top-row { display: flex; align-items: center; justify-content: space-between; }
+        .left-controls { display: flex; align-items: center; gap: 8px; }
+        .docs-icon { color: #4285f4; font-size: 40px; }
+        .title-section { display: flex; flex-direction: column; }
+        .title-row { display: flex; align-items: center; gap: 8px; }
+        .doc-title { font-size: 18px; border: 1px solid transparent; padding: 2px 4px; border-radius: 4px; outline: none; width: 250px; }
+        .doc-title:focus { border-color: var(--border-color); background: #f8f9fa; }
+        
+        .menu-bar { display: flex; gap: 4px; font-size: 14px; color: var(--text-muted); margin-top: 4px; position: relative; }
+        .menu-item-container { position: relative; }
+        .menu-bar-btn { cursor: pointer; padding: 2px 8px; border-radius: 4px; user-select: none; }
+        .menu-bar-btn:hover, .menu-bar-btn.active { background: var(--bg-body); }
+
+        /* --- Dropdown Menus --- */
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            min-width: 280px;
+            box-shadow: var(--menu-shadow);
+            border-radius: 4px;
+            padding: 6px 0;
+            display: none;
+            flex-direction: column;
+            z-index: 1001;
+        }
+        .dropdown-menu.show { display: flex; }
+        .dropdown-menu.right-aligned { right: 0; left: auto; min-width: 220px; }
+
+        .menu-option {
+            display: flex;
+            align-items: center;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #3c4043;
+            gap: 12px;
+        }
+        .menu-option:hover { background-color: #f1f3f4; }
+        .menu-option .opt-text { flex: 1; }
+        .menu-option .shortcut { color: #70757a; font-size: 12px; margin-left: 10px; }
+        .menu-divider { height: 1px; background: #e8eaed; margin: 6px 0; }
+
+        /* --- Mode Switcher Layout --- */
+        .mode-btn {
+            background: white;
+            border: 1px solid transparent;
+            border-radius: 20px;
+            padding: 0 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            height: 40px;
+            color: var(--text-muted);
+            background-color: transparent;
+            transition: all 0.2s;
+        }
+        .mode-btn:hover { background-color: rgba(0, 0, 0, 0.05); }
+
+        /* --- Split Share Box Layout --- */
+        .share-split-container {
+            display: inline-flex;
+            align-items: center;
+            background-color: var(--blue-light);
+            border-radius: 24px;
+            height: 40px;
+            overflow: hidden;
+            user-select: none;
+        }
+        .share-split-container:hover { background-color: var(--blue-hover); }
+        
+        .share-main-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 16px 0 20px;
+            border: none;
+            background: none;
+            height: 100%;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #041e49;
+        }
+        .share-main-btn .material-symbols-outlined { color: #041e49; font-size: 20px; }
+        .share-divider { width: 1px; height: 22px; background-color: #a8c7fa; }
+        
+        .share-drop-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 12px 0 8px;
+            border: none;
+            background: none;
+            height: 100%;
+            cursor: pointer;
+        }
+        .share-drop-btn .material-symbols-outlined { color: #041e49; font-size: 20px; }
+
+        /* --- Toolbars --- */
+        .toolbar-area { background: #fff; padding: 0 16px 8px 16px; }
+        .toolbar { background: var(--bg-toolbar); border-radius: 24px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; }
+        .divider { width: 1px; height: 20px; background: var(--border-color); margin: 0 4px; }
+        
+        .tool-btn { background: none; border: none; border-radius: 4px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .tool-btn:hover { background: rgba(0,0,0,0.05); }
+        .tool-btn.active { background: var(--blue-light); color: var(--blue-primary); }
+
+        .size-control { display: flex; align-items: center; background: rgba(0,0,0,0.05); border-radius: 4px; }
+        .size-control input { width: 30px; text-align: center; border: none; background: none; font-size: 14px; outline: none; }
+
+        /* --- Workspace Layout Setup --- */
+        .main { display: flex; flex: 1; overflow: hidden; }
+        
+        /* Left Tabs Sidebar Configuration */
+        .sidebar { width: 260px; border-right: 1px solid #e8eaed; padding: 16px; font-size: 14px; transition: margin-left 0.2s; background: #fff; display: flex; flex-direction: column; }
+        .sidebar.collapsed { margin-left: -260px; }
+        #tabs-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+        
+        .tab { 
+            padding: 8px 12px; 
+            border-radius: 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            cursor: pointer; 
+            user-select: none;
+            color: var(--text-muted);
+            background: transparent;
+            transition: background 0.1s;
+        }
+        .tab:hover { background: rgba(0,0,0,0.04); }
+        .tab.active { background: #e8f0fe; color: var(--blue-primary); font-weight: 500; }
+        
+        .close-tab-btn { font-size: 16px; border-radius: 50%; padding: 2px; color: var(--text-muted); }
+        .close-tab-btn:hover { background: rgba(0,0,0,0.1); color: #c2185b; }
+
+        /* Right Side Notes Panel Frame Layout */
+        .notes-sidebar {
+            width: 280px;
+            border-left: 1px solid #e8eaed;
+            border-right: none;
+            padding: 16px;
+            display: none;
+            flex-direction: column;
+            background: #fff;
+        }
+        .notes-sidebar.active { display: flex; }
+
+        .editor-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding-top: 16px; background: var(--bg-body); width: 100%; }
+        .editor { 
+            background: white; width: 816px; min-height: 1056px; padding: 96px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2); outline: none; line-height: 1.5; word-wrap: break-word;
+        }
+        
+        /* Compact layout styles */
+        .editor-container.compact-view { padding-top: 0; background: white; }
+        .editor-container.compact-view .editor { width: 100%; min-height: 100vh; box-shadow: none; border: none; padding: 48px; }
+
+/* --- Google Docs Aesthetic Format Toolbar Style --- */
+.rich-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    background-color: #f0f4f9;
+    padding: 4px 12px;
+    gap: 4px;
+    border-radius: 24px;
+    margin: 8px 16px;
+    user-select: none;
+    box-sizing: border-box;
+}
+
+.toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.toolbar-divider {
+    width: 1px;
+    height: 20px;
+    background-color: #dadce0;
+    margin: 0 6px;
+}
+
+/* Action Tool Button Base Layout */
+.tool-btn {
+    background: none;
+    border: none;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #444746;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.tool-btn span {
+    font-size: 18px !important;
+}
+
+.tool-btn:hover {
+    background-color: #e1e5ea;
+    color: #1f1f1f;
+}
+
+.tool-btn.active {
+    background-color: #c2e7ff;
+    color: #001d35;
+}
+
+/* Dropdown Choice Select Framework Rules */
+.tool-select {
+    background: none;
+    border: none;
+    font-family: sans-serif;
+    font-size: 14px;
+    color: #444746;
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    outline: none;
+}
+
+.tool-select:hover {
+    background-color: #e1e5ea;
+}
+
+/* Font Size Digit Value Box Displays */
+.tool-size-input {
+    width: 28px;
+    height: 22px;
+    border: 1px solid #747775;
+    border-radius: 4px;
+    background-color: transparent;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1f1f1f;
+    outline: none;
+}
+
+/* --- Focus Zoom Classes --- */
+#editor-container.zoomed-focus {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 10% !important;
+    transform: scale(1.05);
+    transition: all 0.25s ease-in-out;
+}
+
+/* --- Comprehensive Viewport Dark Mode Overrides --- */
+html, 
+body.dark-theme-active {
+    background-color: #1e1f20 !important;
+    color: #e3e3e3 !important;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Force backgrounds of all sidebars, layout wrappers, and background plates to go dark */
+body.dark-theme-active #doc-sidebar,
+body.dark-theme-active #notes-sidebar,
+body.dark-theme-active #editor-container,
+body.dark-theme-active main,
+body.dark-theme-active header {
+    background-color: #1e1f20 !important;
+    color: #e3e3e3 !important;
+    border-color: #444746 !important;
+}
+
+/* Dropdown floating cards thematic adjustment */
+body.dark-theme-active .dropdown-menu {
+    background-color: #2b2a2b !important;
+    border-color: #444746 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+body.dark-theme-active .menu-option {
+    color: #e3e3e3 !important;
+}
+
+body.dark-theme-active .menu-option:hover {
+    background-color: #3b3a3b !important;
+}
+
+body.dark-theme-active .menu-divider {
+    border-bottom-color: #444746 !important;
+}
+
+/* --- Word Count Modal Backdrop Layer Overlay --- */
+.modal-backplate-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(60, 64, 67, 0.32);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+/* Centralized Dialog Layout Platform */
+#wordcount-modal-card {
+    background-color: #ffffff;
+    width: 100%;
+    max-width: 380px;
+    border-radius: 28px;
+    padding: 24px;
+    box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+    font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+    box-sizing: border-box;
+}
+
+.modal-title-text {
+    margin: 0 0 20px 0;
+    font-size: 24px;
+    font-weight: 400;
+    color: #1f1f1f;
+}
+
+/* Metric Alignment Matrix Setup */
+.metrics-table-rows {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 24px;
+}
+
+.metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    font-size: 14px;
+    color: #3c4043;
+}
+
+.metric-row.m-highlight {
+    background-color: #f1f3f4;
+    margin: 0 -24px;
+    padding: 10px 24px;
+}
+
+.metric-divider-line {
+    border-bottom: 1px solid #dadce0;
+    margin: 4px 0;
+}
+
+.metric-label { font-weight: 400; }
+.metric-value { font-weight: 500; color: #1f1f1f; }
+
+/* Custom Google Docs Blueprint Checkbox Component Wrapper */
+.g-checkbox-container-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    margin-bottom: 24px;
+    user-select: none;
+}
+
+.checkbox-hitbox {
+    position: relative;
+    width: 20px;
+    height: 20px;
+}
+
+.checkbox-hitbox input {
+    position: absolute;
+    opacity: 0; cursor: pointer; height: 0; width: 0;
+}
+
+.custom-checkbox-box {
+    width: 20px; height: 20px;
+    border: 2px solid #747775;
+    border-radius: 4px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+
+.g-checkbox-container-wrapper input:checked ~ .custom-checkbox-box {
+    background-color: #0b57d0;
+    border-color: #0b57d0;
+}
+
+.check-mark-icon {
+    font-size: 16px !important;
+    color: white;
+    font-weight: bold;
+    display: none;
+}
+
+.g-checkbox-container-wrapper input:checked ~ .custom-checkbox-box .check-mark-icon {
+    display: block;
+}
+
+.checkbox-label-text {
+    font-size: 14px;
+    color: #3c4043;
+}
+
+/* Action Control Alignment Configurations */
+.modal-actions-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.modal-btn-flat {
+    border: none; background: none;
+    padding: 0 24px; height: 40px;
+    border-radius: 20px;
+    font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: background-color 0.15s;
+}
+
+.modal-btn-flat.secondary { color: #0b57d0; }
+.modal-btn-flat.secondary:hover { background-color: rgba(11, 87, 208, 0.08); }
+.modal-btn-flat.primary { background-color: #0b57d0; color: white; }
+.modal-btn-flat.primary:hover { background-color: #0842a0; box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3); }
+
+/* Bottom Viewport Floating Content Pill Status Card Badge */
+#workspace-wordcount-pill {
+    position: fixed;
+    bottom: 16px; left: 16px;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 12px; font-weight: 500;
+    color: #444746; z-index: 1000;
+    font-family: sans-serif;
+    pointer-events: none;
+}
+
+/* --- Dark Mode Active Structural Overrides Rules --- */
+body.dark-theme-active #wordcount-modal-card,
+body.dark-theme-active #workspace-wordcount-pill {
+    background-color: #2b2a2b !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.6) !important;
+}
+body.dark-theme-active .modal-title-text,
+body.dark-theme-active .metric-value { color: #e3e3e3 !important; }
+body.dark-theme-active .metric-label,
+body.dark-theme-active .checkbox-label-text { color: #c4c7c5 !important; }
+body.dark-theme-active .metric-row.m-highlight { background-color: #3b3a3b !important; }
+body.dark-theme-active .metric-divider-line { border-bottom-color: #444746 !important; }
+body.dark-theme-active .custom-checkbox-box { border-color: #c4c7c5; }
+body.dark-theme-active .modal-btn-flat.secondary { color: #a8c7fa !important; }
+body.dark-theme-active .modal-btn-flat.primary { background-color: #a8c7fa !important; color: #041e49 !important; }
+
+/* --- Document Workspace Find Highlights --- */
+.search-mark-highlight {
+    background-color: #ffeb3b !important; /* Soft yellow accent match */
+    color: #000000 !important;
+    border-radius: 2px;
+    padding: 1px 0;
+    box-shadow: 0 0 0 1px rgba(255, 235, 59, 0.5);
+}
+
+/* Dark Theme Adjustments */
+body.dark-theme-active .search-mark-highlight {
+    background-color: #e3b20e !important; /* Amber highlight to preserve dark contrast readability */
+    color: #1e1f20 !important;
+    box-shadow: 0 0 0 1px rgba(227, 178, 14, 0.5);
+}
+/* --- Navbar Search Box Framework --- */
+.navbar-search-container {
+    display: flex;
+    align-items: center;
+    background-color: #f0f4f9;
+    border-radius: 20px;
+    padding: 0 12px;
+    height: 36px;
+    width: 200px;
+    margin-right: auto; /* Pushes all other navbar buttons cleanly to the right */
+    box-sizing: border-box;
+    transition: background-color 0.15s, box-shadow 0.15s, width 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.navbar-search-container:focus-within {
+    background-color: #ffffff;
+    border-color: #0b57d0;
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+    width: 240px; /* Gently expands on focus like Google Docs components */
+}
+
+/* Internal Elements Vector Layout alignment */
+.search-bar-icon {
+    color: #444746;
+    font-size: 20px !important;
+    margin-right: 8px;
+    user-select: none;
+}
+
+#navbar-search-input {
+    border: none;
+    background: none;
+    outline: none;
+    width: 100%;
+    font-family: sans-serif;
+    font-size: 14px;
+    color: #1f1f1f;
+    padding: 0;
+}
+
+#navbar-search-input::placeholder {
+    color: #747775;
+}
+
+/* Clear utility button hidden by default until typing starts */
+.search-clear-btn {
+    color: #444746;
+    font-size: 18px !important;
+    cursor: pointer;
+    margin-left: 4px;
+    user-select: none;
+    display: none; 
+}
+
+.search-clear-btn:hover {
+    color: #1f1f1f;
+}
+
+/* --- Dark Theme Presentation Layer Rules --- */
+body.dark-theme-active .navbar-search-container {
+    background-color: #2b2a2b !important;
+}
+
+body.dark-theme-active .navbar-search-container:focus-within {
+    background-color: #1e1f20 !important;
+    border-color: #a8c7fa !important;
+}
+
+body.dark-theme-active #navbar-search-input {
+    color: #e3e3e3 !important;
+}
+
+body.dark-theme-active #navbar-search-input::placeholder {
+    color: #8e918f !important;
+}
+
+body.dark-theme-active .search-bar-icon,
+body.dark-theme-active .search-clear-btn {
+    color: #c4c7c5 !important;
+}
+/* --- Document Workspace Text Highlights --- */
+.search-mark-highlight {
+    background-color: #ffeb3b !important;
+    color: #000000 !important;
+    border-radius: 2px;
+    padding: 1px 0;
+    box-shadow: 0 0 0 1px rgba(255, 235, 59, 0.5);
+}
+
+/* --- UI Settings Menu Highlights --- */
+.menu-option.setting-match-highlight {
+    background-color: #fef7e0 !important; /* Soft yellow backing */
+    border-left: 3px solid #fbbc04; /* Google yellow left-border indicator */
+}
+
+/* Highlight the main navbar button if it contains a matching setting */
+.menu-bar-btn.has-match {
+    background-color: #c2e7ff !important;
+    color: #001d35 !important;
+    font-weight: 500;
+}
+
+/* --- Dark Theme Adjustments --- */
+body.dark-theme-active .search-mark-highlight {
+    background-color: #e3b20e !important;
+    color: #1e1f20 !important;
+    box-shadow: 0 0 0 1px rgba(227, 178, 14, 0.5);
+}
+
+body.dark-theme-active .menu-option.setting-match-highlight {
+    background-color: #413a22 !important;
+    border-left-color: #fbbc04;
+}
+
+body.dark-theme-active .menu-bar-btn.has-match {
+    background-color: #004a77 !important;
+    color: #c2e7ff !important;
+}
+/* --- Tab Star Interaction Styling --- */
+.star-tab-btn {
+    font-size: 16px !important;
+    color: #747775; /* Standard inactive outline */
+    cursor: pointer;
+    user-select: none;
+    margin-right: 6px;
+    transition: color 0.15s, transform 0.1s ease-in-out;
+}
+
+.star-tab-btn:hover {
+    color: #444746;
+    transform: scale(1.15); /* Slight pop on hover */
+}
+
+/* Active Gold State */
+.star-tab-btn.starred {
+    color: #fbbc04; /* Google Docs Gold */
+}
+
+.star-tab-btn.starred:hover {
+    color: #f2a900;
+}
+
+/* Dark Mode Overrides */
+body.dark-theme-active .star-tab-btn {
+    color: #8e918f;
+}
+
+body.dark-theme-active .star-tab-btn:hover {
+    color: #c4c7c5;
+}
+
+body.dark-theme-active .star-tab-btn.starred {
+    color: #fde293; /* Softened gold for dark mode contrast */
+}
+
+body.dark-theme-active .star-tab-btn.starred:hover {
+    color: #fbbc04;
+}
+/* --- Active Star Blue State --- */
+.star-tab-btn.starred {
+    color: var(--blue-primary) !important; /* Forces your primary theme blue (#0b57d0) */
+}
+
+.star-tab-btn.starred:hover {
+    color: #0842a0 !important; /* Slightly darker rich blue on hover */
+}
+
+/* --- Dark Theme Adjustments --- */
+body.dark-theme-active .star-tab-btn.starred {
+    color: #a8c7fa !important; /* Light pastel blue for healthy dark mode contrast */
+}
+
+body.dark-theme-active .star-tab-btn.starred:hover {
+    color: #c2e7ff !important;
+}
+.star-tab-btn.starred {
+    color: var(--blue-primary) !important;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20; /* Dynamically paints the interior */
+}

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="icon.png" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Untitled Document - Freedom Docs</title>
+    <link href="stuff.css" rel="stylesheet" />
+    <script src="turndown.js"></script>
+    <link href="styles.css" rel="stylesheet" />
+</head>
+<body>
+
+<input type="file" id="hidden-file-input" style="display: none;" accept=".md,.txt">
+
+<header>
+    <div class="top-row">
+        <div class="left-controls">
+            <span class="material-symbols-outlined docs-icon">description</span>
+            <div class="title-section">
+                <div class="title-row">
+                    <input type="text" id="doc-name" class="doc-title" value="Untitled Document">
+                </div>
+                <div class="menu-bar">
+                    <div class="menu-item-container" title="Download, Delete, Print & more">
+                        <span class="menu-bar-btn" id="file-menu-btn">File</span>
+                        <div class="dropdown-menu" id="file-dropdown">
+                            <div class="menu-option" onclick="createNewTab()">
+                                <span class="material-symbols-outlined">note_add</span><span class="opt-text">New document workspace</span>
+                            </div>
+                            <div class="menu-option" onclick="triggerOpenFile()">
+                                <span class="material-symbols-outlined">folder_open</span><span class="opt-text">Open file into this doc</span><span class="shortcut">Ctrl+O</span>
+                            </div>
+                            <div class="menu-option" onclick="makeCopy()">
+                                <span class="material-symbols-outlined">content_copy</span><span class="opt-text">Make a copy</span>
+                            </div>
+                            <div class="menu-divider"></div>
+                            <div class="menu-option" onclick="shareEmail()">
+                                <span class="material-symbols-outlined">share</span><span class="opt-text">Share & Email this doc</span>
+                            </div>
+                            <div class="menu-option" onclick="downloadMD()">
+                                <span class="material-symbols-outlined">download</span><span class="opt-text">Download this doc</span><span class="shortcut">Ctrl+S</span>
+                            </div>
+                            <div class="menu-divider"></div>
+                            <div class="menu-option" onclick="renameDoc()">
+                                <span class="material-symbols-outlined">edit_square</span><span class="opt-text">Rename this doc</span>
+                            </div>
+                            <div class="menu-option" onclick="moveToBin()">
+                                <span class="material-symbols-outlined">delete</span><span class="opt-text">Delete this doc</span>
+                            </div>
+                            <div class="menu-divider"></div>
+                            <div class="menu-option" onclick="window.print()">
+                                <span class="material-symbols-outlined">print</span><span class="opt-text">Print this doc</span><span class="shortcut">Ctrl+P</span>
+                            </div>
+                            <div class="menu-divider"></div>
+                            <div class="menu-option" onclick="linkWorkspaceToFileSystem()">
+                            <span class="material-symbols-outlined">sync</span>
+                            <span class="opt-text">Enable Local File Auto-Save</span>
+                            </div>
+                            <div class="menu-option" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; cursor: pointer;" onclick="toggleAutoSaveState(event)">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <span class="material-symbols-outlined">file_save</span>
+        <span class="opt-text" style="font-size: 14px; color: #3c4043;">Auto-save to browser memory</span>
+    </div>
+    <div id="autosave-switch-bg" style="width: 36px; height: 20px; background-color: var(--blue-primary); border-radius: 10px; position: relative; transition: background-color 0.2s; padding: 2px;">
+        <div id="autosave-switch-knob" style="width: 16px; height: 16px; background-color: white; border-radius: 50%; position: absolute; right: 2px; transition: transform 0.2s, left 0.2s, right 0.2s;"></div>
+    </div>
+</div>
+                            <div class="menu-divider"></div>
+                            <div class="menu-option" onclick="sendBugReportEmail()">
+                                <span class="material-symbols-outlined">bug_report</span><span class="opt-text">Send Bug Report</span>
+                            </div>
+                            <div class="menu-divider"></div>
+                            <div class="menu-option" onclick="toggleShortcutsModal(true)">
+                                <span class="material-symbols-outlined">help</span><span class="opt-text">Keyboard shortcuts</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-item-container">
+                        <span class="menu-bar-btn" id="view-menu-btn" title="Change editing permissions and page display">Settings</span>
+                        <div class="dropdown-menu" id="view-dropdown">
+                            <div class="menu-option" onclick="toggleSidebarView()">
+                                <span class="material-symbols-outlined">side_navigation</span>
+                                <span class="opt-text">Toggle tabs sidebar</span>
+                            </div>
+                            <div class="menu-option" onclick="togglePrintLayout()">
+                                <div class="menu-check" id="check-print-layout" style="width:18px; font-weight:bold;">✓</div>
+                                <span class="opt-text">Show print layout</span>
+                            </div>
+                             <div class="menu-divider"></div>
+                            <div class="menu-option" onclick="linkWorkspaceToFileSystem()">
+                            <span class="material-symbols-outlined">sync</span>
+                            <span class="opt-text">Enable Local File Auto-Save</span>
+                            </div>
+                            <div class="menu-divider"></div>
+                            <a href="https://github.com/pearseiscool6-tech/Freedom-Docs/releases" target="_blank" style="text-decoration: none; color: inherit;">
+            <div class="menu-option">
+                <span class="material-symbols-outlined">update</span>
+                <span class="opt-text">Check for updates (GitHub)</span>
+            </div>
+        </a>
+        <a href="https://github.com/pearseiscool6-tech/Freedom-Docs?tab=readme-ov-file" target="_blank" style="text-decoration: none; color: inherit;">
+            <div class="menu-option">
+                <span class="material-symbols-outlined">code</span>
+                <span class="opt-text">View Source Code Repository</span>
+            </div>
+        </a>
+                            <div class="menu-divider"></div>
+                            <div class="menu-option" onclick="sendBugReportEmail();">
+                                <span class="material-symbols-outlined">bug_report</span><span class="opt-text">Send Bug Report</span>
+                            </div>
+                            <div class="menu-divider"></div>
+                            <div class="menu-option" onclick="toggleShortcutsModal(true)">
+                                <span class="material-symbols-outlined">help</span><span class="opt-text">Keyboard shortcuts</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="menu-item-container">
+    <span class="menu-bar-btn" id="insert-menu-btn">Insert</span>
+    <div class="dropdown-menu" id="insert-dropdown">
+        <div class="menu-option" onclick="execAction('copy')">
+            <span class="material-symbols-outlined">content_copy</span>
+            <span class="opt-text">Copy</span>
+        </div>
+        <div class="menu-option" onclick="execAction('paste')">
+            <span class="material-symbols-outlined">content_paste</span>
+            <span class="opt-text">Paste</span>
+        </div>
+        <div class="menu-divider"></div>
+        <div class="menu-option" onclick="insertElement('image')">
+            <span class="material-symbols-outlined">image</span>
+            <span class="opt-text">Image</span>
+        </div>
+        <div class="menu-option" onclick="insertElement('link')">
+            <span class="material-symbols-outlined">link</span>
+            <span class="opt-text">Link</span>
+        </div>
+        <div class="menu-option" onclick="insertElement('horizontal_line')">
+            <span class="material-symbols-outlined">horizontal_rule</span>
+            <span class="opt-text">Horizontal line</span>
+        </div>
+        <div class="menu-option" onclick="insertElement('emoji')">
+            <span class="material-symbols-outlined">sentiment_satisfied</span>
+            <span class="opt-text">Emoji</span>
+        </div>
+        <div class="menu-option" onclick="insertElement('break')">
+            <span class="material-symbols-outlined">splitscreen</span>
+            <span class="opt-text">Page break</span>
+        </div>
+    </div>
+</div>
+                    <div class="menu-item-container">
+    <span class="menu-bar-btn" id="format-menu-btn">Format</span>
+    <div class="dropdown-menu" id="format-dropdown">
+        <div class="menu-option" onclick="execFormat('bold')">
+            <span class="material-symbols-outlined">format_bold</span>
+            <span class="opt-text">Bold</span>
+        </div>
+        <div class="menu-option" onclick="execFormat('italic')">
+            <span class="material-symbols-outlined">format_italic</span>
+            <span class="opt-text">Italic</span>
+        </div>
+        <div class="menu-option" onclick="execFormat('underline')">
+            <span class="material-symbols-outlined">format_underlined</span>
+            <span class="opt-text">Underline</span>
+        </div>
+        <div class="menu-option" onclick="execFormat('strikethrough')">
+            <span class="material-symbols-outlined">strikethrough_s</span>
+            <span class="opt-text">Strikethrough</span>
+        </div>
+        <div class="menu-divider"></div>
+        <div class="menu-option" onclick="execFormat('insertUnorderedList')">
+            <span class="material-symbols-outlined">format_list_bulleted</span>
+            <span class="opt-text">Bulleted list</span>
+        </div>
+        <div class="menu-option" onclick="execFormat('insertOrderedList')">
+            <span class="material-symbols-outlined">format_list_numbered</span>
+            <span class="opt-text">Numbered list</span>
+        </div>
+        <div class="menu-divider"></div>
+        <div class="menu-option" onclick="execFormat('justifyLeft')">
+            <span class="material-symbols-outlined">format_align_left</span>
+            <span class="opt-text">Align left</span>
+        </div>
+        <div class="menu-option" onclick="execFormat('justifyCenter')">
+            <span class="material-symbols-outlined">format_align_center</span>
+            <span class="opt-text">Align center</span>
+        </div>
+        <div class="menu-divider"></div>
+        <div class="menu-option" onclick="execFormat('removeFormat')">
+            <span class="material-symbols-outlined">format_clear</span>
+            <span class="opt-text">Clear formatting</span>
+        </div>
+    </div>
+</div>
+                    <div class="menu-item-container">
+    <span class="menu-bar-btn" id="tools-menu-btn">Tools</span>
+    <div class="dropdown-menu" id="tools-dropdown">
+        <div class="menu-option" onclick="runToolAction('wordCount')">
+            <span class="material-symbols-outlined">description</span>
+            <span class="opt-text">Word count</span>
+            <span style="margin-left: auto; font-size: 11px; color: #747775; padding-left: 16px;">Ctrl+Shift+C</span>
+        </div>
+        <div class="menu-option" onclick="runToolAction('dictionary')">
+            <span class="material-symbols-outlined">menu_book</span>
+            <span class="opt-text">Dictionary</span>
+            <span style="margin-left: auto; font-size: 11px; color: #747775; padding-left: 16px;">Ctrl+Shift+Y</span>
+        </div>
+        <div class="menu-option" id="voice-typing-option" onclick="runToolAction('voiceTyping')">
+            <span class="material-symbols-outlined" id="voice-icon">mic</span>
+            <span class="opt-text" id="voice-text-label">Voice typing</span>
+            <span style="margin-left: auto; font-size: 11px; color: #747775; padding-left: 16px;">Ctrl+Shift+S</span>
+        </div>
+    </div>
+</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="right-controls" style="display: flex; align-items: center; gap: 12px;">
+            <div class="menu-item-container">
+                <button class="mode-btn" id="mode-btn">
+                    <span class="material-symbols-outlined" id="mode-icon" style="color: var(--blue-primary)">edit</span>
+                    <span id="mode-text" style="font-size: 14px;">Editing</span>
+                    <span class="material-symbols-outlined" style="font-size: 16px;">arrow_drop_down</span>
+                </button>
+                <div class="dropdown-menu right-aligned" id="mode-dropdown">
+                    <div class="menu-option" onclick="setMode('editable')">
+                        <span class="material-symbols-outlined" style="color: var(--blue-primary)">edit</span>
+                        <div style="display:flex; flex-direction:column;">
+                            <span class="opt-text" style="font-weight:500;">Editing</span>
+                            <span style="font-size:11px; color:#70757a;">Edit document directly</span>
+                        </div>
+                    </div>
+                    <div class="menu-option" onclick="setMode('note')">
+                        <span class="material-symbols-outlined" style="color: #e37400">edit_note</span>
+                        <div style="display:flex; flex-direction:column;">
+                            <span class="opt-text" style="font-weight:500;">Note-taking</span>
+                            <span style="font-size:11px; color:#70757a;">Read and add notes</span>
+                        </div>
+                    </div>
+                    <div class="menu-option" onclick="setMode('readonly')">
+                        <span class="material-symbols-outlined" style="color: #c2185b">visibility</span>
+                        <div style="display:flex; flex-direction:column;">
+                            <span class="opt-text" style="font-weight:500;">Read-only</span>
+                            <span style="font-size:11px; color:#70757a;">Read or print final doc</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="share-split-container">
+                <button class="share-main-btn" onclick="shareEmail()">
+                    <span class="material-symbols-outlined">share</span>Share
+                </button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="rich-toolbar">
+    <div class="toolbar-group">
+        <div class="navbar-search-container">
+    <span class="material-symbols-outlined search-bar-icon">search</span>
+    <input 
+        type="text" 
+        id="navbar-search-input" 
+        placeholder="Search document..." 
+        autocomplete="off"
+        title="Search (Press Esc to clear)"
+    >
+    <span class="material-symbols-outlined" id="navbar-search-clear" onclick="clearSearchInput()">close</span>
+    
+</div>
+        <button class="tool-btn" onclick="execTool('undo')" title="Undo (Ctrl+Z)">
+            <span class="material-symbols-outlined">undo</span>
+        </button>
+        <button class="tool-btn" onclick="execTool('redo')" title="Redo (Ctrl+Y)">
+            <span class="material-symbols-outlined">redo</span>
+        </button>
+        <button class="tool-btn" onclick="window.print()" title="Print (Ctrl+P)">
+            <span class="material-symbols-outlined">print</span>
+        </button>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <div class="toolbar-group">
+        <button class="tool-btn" onclick="downloadMD()" title="Download Markdown (Ctrl+S)">
+            <span class="material-symbols-outlined">download</span>
+        </button>
+        <button class="tool-btn" id="t-btn-zoom" onclick="toggleWorkspaceZoom()" title="Toggle Focus Zoom">
+            <span class="material-symbols-outlined">zoom_in</span>
+        </button>
+        <button class="tool-btn" id="t-btn-dark" onclick="toggleDarkModeLayout()" title="Toggle Light/Dark Mode">
+            <span class="material-symbols-outlined">contrast</span>
+        </button>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <div class="toolbar-group">
+        <button class="tool-btn" onclick="adjustToolbarFontSize(-1)" title="Decrease font size">
+            <span class="material-symbols-outlined">remove</span>
+        </button>
+        <input type="text" id="toolbar-size-display" class="tool-size-input" value="11" readonly>
+        <button class="tool-btn" onclick="adjustToolbarFontSize(1)" title="Increase font size">
+            <span class="material-symbols-outlined">add</span>
+        </button>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <div class="toolbar-group">
+        <button class="tool-btn" id="t-btn-b" onclick="execTool('bold')" title="Bold (Ctrl+B)">
+            <span class="material-symbols-outlined">format_bold</span>
+        </button>
+        <button class="tool-btn" id="t-btn-i" onclick="execTool('italic')" title="Italic (Ctrl+I)">
+            <span class="material-symbols-outlined">format_italic</span>
+        </button>
+        <button class="tool-btn" id="t-btn-u" onclick="execTool('underline')" title="Underline (Ctrl+U)">
+            <span class="material-symbols-outlined">format_underlined</span>
+        </button>
+        <button class="tool-btn" id="t-btn-strike" onclick="execTool('strikethrough')" title="Strikethrough">
+            <span class="material-symbols-outlined">strikethrough_s</span>
+        </button>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <div class="toolbar-group">
+        <button class="tool-btn" onclick="insertElement('link')" title="Insert Link">
+            <span class="material-symbols-outlined">link</span>
+        </button>
+        <button class="tool-btn" onclick="insertElement('image')" title="Insert Image">
+            <span class="material-symbols-outlined">image</span>
+        </button>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <div class="toolbar-group">
+        <button class="tool-btn" onclick="execTool('justifyLeft')" title="Align left">
+            <span class="material-symbols-outlined">format_align_left</span>
+        </button>
+        <button class="tool-btn" onclick="execTool('justifyCenter')" title="Align center">
+            <span class="material-symbols-outlined">format_align_center</span>
+        </button>
+        <button class="tool-btn" onclick="execTool('justifyRight')" title="Align right">
+            <span class="material-symbols-outlined">format_align_right</span>
+        </button>
+        <button class="tool-btn" onclick="execTool('justifyFull')" title="Justify">
+            <span class="material-symbols-outlined">format_align_justify</span>
+        </button>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <div class="toolbar-group">
+        <button class="tool-btn" onclick="execTool('insertUnorderedList')" title="Bulleted list">
+            <span class="material-symbols-outlined">format_list_bulleted</span>
+        </button>
+        <button class="tool-btn" onclick="execTool('insertOrderedList')" title="Numbered list">
+            <span class="material-symbols-outlined">format_list_numbered</span>
+        </button>
+        <button class="tool-btn" onclick="execTool('removeFormat')" title="Clear formatting">
+            <span class="material-symbols-outlined">format_clear</span>
+        </button>
+    </div>
+</div>
+
+<div class="main">
+    <div class="sidebar" id="doc-sidebar">
+        <div style="margin-bottom:15px; font-weight:500; display:flex; justify-content:space-between; align-items:center;">
+            <span>Documents</span>
+            <span class="material-symbols-outlined" style="font-size:20px; cursor:pointer; color:var(--blue-primary);" onclick="createNewTab()" title="Create new document">add</span>
+        </div>
+        <div id="tabs-container"></div>
+    </div>
+    
+    <div class="editor-container" id="editor-container">
+        <div id="editor" class="editor" contenteditable="true">Type here...</div>
+    </div>
+
+    <div class="sidebar notes-sidebar" id="notes-sidebar">
+        <div style="margin-bottom:12px; font-weight:500; display:flex; align-items:center; gap:6px; color:#e37400;">
+            <span class="material-symbols-outlined">edit_note</span>
+            <span contenteditable="true">My Sidebar Notes</span>
+        </div>
+        <textarea id="note-pad" placeholder="Write document summary notes here side-by-side..." style="width:100%; flex:1; padding:12px; border:1px solid var(--border-color); border-radius:8px; outline:none; resize:none; font-size:14px; line-height:1.4; color:var(--text-main);"></textarea>
+    </div>
+</div>
+<div id="shortcuts-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000;">
+    <div style="background: white; padding: 24px; border-radius: 8px; width: 450px; box-shadow: 0 4px 16px rgba(0,0,0,0.2); font-family: Arial, sans-serif;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #e8eaed; padding-bottom: 12px;">
+            <h3 style="font-size: 16px; color: #1f1f1f; font-weight: 500;">Keyboard shortcuts</h3>
+            <span class="material-symbols-outlined" style="cursor: pointer; color: #5f6368;" onclick="toggleShortcutsModal(false)">close</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: #3c4043; max-height: 350px; overflow-y: auto; padding-right: 4px;">
+            <div style="display:flex; justify-content:space-between;"><span>Open document file</span><kbd style="background:#f1f3f4; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:12px;">Ctrl + O</kbd></div>
+            <div style="display:flex; justify-content:space-between;"><span>Download document (.md)</span><kbd style="background:#f1f3f4; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:12px;">Ctrl + S</kbd></div>
+            <div style="display:flex; justify-content:space-between;"><span>Print document</span><kbd style="background:#f1f3f4; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:12px;">Ctrl + P</kbd></div>
+            <div style="display:flex; justify-content:space-between;"><span>Copy</span><kbd style="background:#f1f3f4; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:12px;">Ctrl + C</kbd></div>
+            <div style="display:flex; justify-content:space-between;"><span>Paste</span><kbd style="background:#f1f3f4; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:12px;">Ctrl + V</kbd></div>
+            <div style="display:flex; justify-content:space-between;"><span>Enbolden selected text</span><kbd style="background:#f1f3f4; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:12px;">Ctrl + B</kbd></div>
+            <div style="display:flex; justify-content:space-between;"><span>Italicise selected text</span><kbd style="background:#f1f3f4; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:12px;">Ctrl + I</kbd></div>
+            <div style="display:flex; justify-content:space-between;"><span>Undo</span><kbd style="background:#f1f3f4; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:12px;">Ctrl + Z</kbd></div>
+            <div style="display:flex; justify-content:space-between;"><span>Redo</span><kbd style="background:#f1f3f4; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:12px;">Ctrl + Y</kbd></div>
+            <div style="display:flex; justify-content:space-between;"><span>Toggle left tab sidebar</span><kbd style="background:#f1f3f4; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:12px;">Ctrl + Alt + A</kbd></div>
+            <hr style="border:0; border-top:1px solid #e8eaed; margin:4px 0;">
+            <div style="display:flex; justify-content:space-between; color:#70757a; font-size:13px;"><span>Rename Document</span><span>Double-click doc label</span></div>
+        </div>
+    </div>
+</div>
+<script src="script.js"></script>
+    <div id="workspace-wordcount-pill" style="display: none;">
+    <span id="pill-text-render">0 words</span>
+</div>
+
+<div id="wordcount-modal-backplate" class="modal-backplate-overlay">
+    <div id="wordcount-modal-card">
+        <h2 class="modal-title-text">Word count</h2>
+        
+        <div class="metrics-table-rows">
+            <div class="metric-row">
+                <span class="metric-label">Pages</span>
+                <span id="stat-val-pages" class="metric-value">1</span>
+            </div>
+            <div class="metric-divider-line"></div>
+            <div class="metric-row">
+                <span class="metric-label">Words</span>
+                <span id="stat-val-words" class="metric-value">0</span>
+            </div>
+            <div class="metric-row m-highlight">
+                <span class="metric-label">Characters</span>
+                <span id="stat-val-chars" class="metric-value">0</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Characters excluding spaces</span>
+                <span id="stat-val-nospaces" class="metric-value">0</span>
+            </div>
+        </div>
+
+        <label class="g-checkbox-container-wrapper">
+            <div class="checkbox-hitbox">
+                <input type="checkbox" id="toggle-live-tracking-pill" onchange="handlePillVisibilitySwitch(this)">
+                <div class="custom-checkbox-box">
+                    <span class="material-symbols-outlined check-mark-icon">check</span>
+                </div>
+            </div>
+            <span class="checkbox-label-text">Display word count while typing</span>
+        </label>
+
+        <div class="modal-actions-wrapper">
+            <button class="modal-btn-flat secondary" onclick="closeWordCountModal()">Cancel</button>
+            <button class="modal-btn-flat primary" onclick="closeWordCountModal()">OK</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>
