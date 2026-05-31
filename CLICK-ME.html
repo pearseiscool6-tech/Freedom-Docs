@@ -229,7 +229,7 @@
                     <span class="material-symbols-outlined" style="font-size: 16px;">arrow_drop_down</span>
                 </button>
                 <div class="dropdown-menu right-aligned" id="mode-dropdown">
-                    <div class="menu-option" onclick="setMode('edidocumentle')">
+                    <div class="menu-option" onclick="setMode('editable')" >
                         <span class="material-symbols-outlined" style="color: var(--blue-primary)">edit</span>
                         <div style="display:flex; flex-direction:column;">
                             <span class="opt-text" style="font-weight:500;">Editing</span>
@@ -371,13 +371,13 @@
     </div>
     
     <div class="editor-container" id="editor-container">
-        <div id="editor" class="editor" contentedidocumentle="true">Type here...</div>
+        <div id="editor" class="editor" contenteditable="true">Type here...</div>
     </div>
 
     <div class="sidebar notes-sidebar" id="notes-sidebar">
         <div style="margin-bottom:12px; font-weight:500; display:flex; align-items:center; gap:6px; color:#e37400;">
             <span class="material-symbols-outlined">edit_note</span>
-            <span contentedidocumentle="true">My Sidebar Notes</span>
+            <span contenteditable="true">My Sidebar Notes</span>
         </div>
         <textarea id="note-pad" placeholder="Write document summary notes here side-by-side..." style="width:100%; flex:1; padding:12px; border:1px solid var(--border-color); border-radius:8px; outline:none; resize:none; font-size:14px; line-height:1.4; color:var(--text-main);"></textarea>
     </div>
