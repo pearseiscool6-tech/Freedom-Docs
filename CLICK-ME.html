@@ -9,7 +9,12 @@
     <link href="styles.css" rel="stylesheet" />
 </head>
 <body>
-
+<div id="error-popup" class="popup-hidden">
+    <div class="error-content">
+        <span id="error-title">ERROR TITLE</span>
+        <p id="error-desc">ERROR DESCRIPTION</p>
+    </div>
+</div>
 <input type="file" id="hidden-file-input" style="display: none;" accept=".md,.txt">
 
 <header>
@@ -368,6 +373,11 @@
             <span class="material-symbols-outlined" style="font-size:20px; cursor:pointer; color:var(--blue-primary);" onclick="createNewdocument()" title="Create new document">add</span>
         </div>
         <div id="documents-container"></div>
+        <div style="margin-bottom:15px; font-weight:500; display:flex; justify-content:space-between; align-items:center;">
+            <span>Tags</span>
+            <span class="material-symbols-outlined" style="font-size:20px; cursor:pointer; color:var(--blue-primary);" onclick="createNewtag()" title="Create new tag">add</span>
+        </div>
+        <div id="tags-container"></div>
     </div>
     
     <div class="editor-container" id="editor-container">

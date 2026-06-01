@@ -34,8 +34,10 @@ let isPrintLayout = true;
 let isAutoSaveEnabled = true; // ON by default
 // --- Document System Storage States ---
 let documents = [];
+let tags = [];
 let currentdocumentId = 1;
 let nextdocumentId = 2;
+let nextTagId = 1;
 
 // --- File System Access API Handles ---
 let localFileHandle = null; 
@@ -50,15 +52,17 @@ function initWorkspace() {
             const parsed = JSON.parse(savedData);
             // Backward compatibility fallback to safely migrate older session arrays
             documents = parsed.documents || parsed.tabs || [];
+            tags = parsed.tags || [];
             currentdocumentId = parsed.currentdocumentId || parsed.currentTabId || 1;
             nextdocumentId = parsed.nextdocumentId || parsed.nextTabId || 2;
+            nextTagId = parsed.nextTagId || 1;
             
             // Restore toggle preference if it was explicitly saved previously
             if (parsed.hasOwnProperty('isAutoSaveEnabled')) {
                 isAutoSaveEnabled = parsed.isAutoSaveEnabled;
             }
         } catch (e) {
-            alert("Local recovery corrupted. Clearing frame registry.");
+            showError("Workspace Error", "Local recovery corrupted. Clearing frame registry.");
             console.error("Local recovery corrupted. Clearing frame registry.");
             loadDefaultdocumentState();
         }
@@ -84,6 +88,7 @@ function initWorkspace() {
     // Sync Visual State of the Switch UI matching Preference Rules
     updateSwitchUI();
     renderdocuments();
+    renderTags();
 }
 
 // --- Toggle Controller Operation Function ---
@@ -134,8 +139,10 @@ function triggerMemoryAutoSave() {
 
     const payload = {
         documents: documents,
+        tags: tags,
         currentdocumentId: currentdocumentId,
         nextdocumentId: nextdocumentId,
+        nextTagId: nextTagId,
         isAutoSaveEnabled: isAutoSaveEnabled // Persist configuration flag state parameter
     };
     localStorage.setItem('freedom_docs_workspace', JSON.stringify(payload));
@@ -144,8 +151,10 @@ function triggerMemoryAutoSave() {
 function loadDefaultdocumentState() {
     //sets precedent for new documents
     documents = [{ id: 1, name: 'Untitled Document', content: 'Type here...', notePad: '', isbookmarked: false }];
+    tags = [];
     currentdocumentId = 1;
     nextdocumentId = 2;
+    nextTagId = 1;
     document.title = "Untitled Document - Freedom Docs";
 }
 
@@ -164,7 +173,7 @@ function handleWorkspaceMutation() {
 // --- Link Active Document Workspace directly to a true local file handle ---
 async function linkWorkspaceToFileSystem() {
     if (!window.showSaveFilePicker) {
-        alert("Your current web browser does not support persistent directory write access loops (this is where this file saves your work to a folder on your machine). Please use an updated browser.");
+        showError("File Error", "Your current web browser does not support persistent directory write access loops (this is where this file saves your work to a folder on your machine). Please use an updated browser.");
         console.error("Your current web browser does not support persistent directory write access loops.");
         return;
     }
@@ -178,11 +187,11 @@ async function linkWorkspaceToFileSystem() {
         };
         // User opens OS file dialog picker once
         localFileHandle = await window.showSaveFilePicker(options);
-        alert(`Linked successfully!`);
+        alert("File Success", "File linked successfully!");
         triggerFileAutoSave();
     } catch (err) {
         console.error("File handle handshake connection sequence aborted: ", err);
-        alert("File handle handshake connection sequence aborted: ", err);
+        showError("File Error", "File handle handshake connection sequence aborted: " + err.message);
     }
 }
 
@@ -250,6 +259,15 @@ function renderdocuments() {
         
         // Wrap switch in an arrow function so the element registers properly
         documentEl.onclick = () => switchdocument(doc.id);
+        documentEl.draggable = true;
+        documentEl.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', String(doc.id));
+            e.dataTransfer.effectAllowed = 'move';
+            documentEl.classList.add('dragging');
+        });
+        documentEl.addEventListener('dragend', () => {
+            documentEl.classList.remove('dragging');
+        });
         
         // 1. Generate bookmark Icon Configuration
         const bookmarkSpan = document.createElement('span');
@@ -310,6 +328,207 @@ function renderdocuments() {
     });
 }
 
+function renderTags() {
+    const tagsContainer = document.getElementById('tags-container');
+    if (!tagsContainer) return;
+    tagsContainer.innerHTML = '';
+
+    if (tags.length === 0) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'tag-placeholder';
+        placeholder.innerText = 'No tags yet. Create one to organize documents.';
+        tagsContainer.appendChild(placeholder);
+        return;
+    }
+
+    tags.forEach(tag => {
+        const tagChip = document.createElement('div');
+        tagChip.className = `tag-chip ${tag.documentIds.includes(currentdocumentId) ? 'active' : ''}`;
+        tagChip.title = 'Click the tag name to toggle this document in the tag';
+
+        const tagHeader = document.createElement('div');
+        tagHeader.className = 'tag-header';
+        tagChip.appendChild(tagHeader);
+
+        const labelContainer = document.createElement('div');
+        labelContainer.className = 'tag-label';
+        labelContainer.style.flex = '1';
+        labelContainer.style.display = 'flex';
+        labelContainer.style.alignItems = 'center';
+        labelContainer.style.gap = '6px';
+        if (!tag.editing) labelContainer.style.cursor = 'pointer';
+        labelContainer.onclick = (e) => {
+            e.stopPropagation();
+            if (!tag.editing) toggleTagMembership(tag.id, currentdocumentId);
+        };
+
+        if (tag.editing) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = tag.name;
+            input.className = 'tag-name-input';
+            input.style.flex = '1';
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    input.blur();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    input.value = tag.name;
+                    input.blur();
+                }
+            };
+            input.addEventListener('click', (e) => e.stopPropagation());
+            input.addEventListener('mousedown', (e) => e.stopPropagation());
+            input.onblur = () => finishTagNameEdit(tag.id, input.value);
+            setTimeout(() => input.focus(), 0);
+            labelContainer.appendChild(input);
+        } else {
+            const labelText = document.createElement('span');
+            labelText.innerText = `${tag.name} (${tag.documentIds.length})`;
+            labelText.style.flex = '1';
+            labelContainer.appendChild(labelText);
+        }
+
+        tagHeader.appendChild(labelContainer);
+
+        const chevron = document.createElement('span');
+        chevron.className = 'material-symbols-outlined tag-chevron';
+        chevron.innerText = tag.expanded ? 'expand_less' : 'expand_more';
+        chevron.title = 'Show documents in this tag';
+        chevron.onclick = (e) => {
+            e.stopPropagation();
+            toggleTagExpanded(tag.id);
+        };
+        tagHeader.appendChild(chevron);
+
+        const deleteIcon = document.createElement('span');
+        deleteIcon.className = 'material-symbols-outlined tag-delete';
+        deleteIcon.innerText = 'close';
+        deleteIcon.title = 'Remove tag';
+        deleteIcon.onclick = (e) => {
+            e.stopPropagation();
+            deleteTag(tag.id);
+        };
+        tagHeader.appendChild(deleteIcon);
+
+        const listContainer = document.createElement('div');
+        listContainer.className = 'tag-doc-list';
+        listContainer.style.display = tag.expanded ? 'block' : 'none';
+
+        if (tag.documentIds.length === 0) {
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'tag-doc-empty';
+            emptyMessage.innerText = 'No documents assigned';
+            listContainer.appendChild(emptyMessage);
+        } else {
+            tag.documentIds.forEach(docId => {
+                const doc = documents.find(d => d.id === docId);
+                if (!doc) return;
+                const docItem = document.createElement('div');
+                docItem.className = 'tag-doc-item';
+                docItem.innerText = doc.name;
+                docItem.title = 'Open this document';
+                docItem.onclick = (e) => {
+                    e.stopPropagation();
+                    switchdocument(doc.id);
+                };
+                listContainer.appendChild(docItem);
+            });
+        }
+
+        tagChip.appendChild(listContainer);
+        tagChip.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            tagChip.classList.add('drop-target');
+        });
+        tagChip.addEventListener('dragleave', () => {
+            tagChip.classList.remove('drop-target');
+        });
+        tagChip.addEventListener('drop', (e) => {
+            e.preventDefault();
+            tagChip.classList.remove('drop-target');
+            const droppedId = Number(e.dataTransfer.getData('text/plain'));
+            if (!isNaN(droppedId)) {
+                toggleTagMembership(tag.id, droppedId);
+            }
+        });
+        tagChip.ondblclick = (e) => {
+            e.stopPropagation();
+            startTagNameEdit(tag.id);
+        };
+
+        tagsContainer.appendChild(tagChip);
+    });
+}
+
+function startTagNameEdit(tagId) {
+    const tag = tags.find(t => t.id === tagId);
+    if (!tag) return;
+    tag.editing = true;
+    tag.expanded = true;
+    renderTags();
+}
+
+function toggleTagExpanded(tagId) {
+    const tag = tags.find(t => t.id === tagId);
+    if (!tag) return;
+    tag.expanded = !tag.expanded;
+    renderTags();
+}
+
+function finishTagNameEdit(tagId, newName) {
+    const tag = tags.find(t => t.id === tagId);
+    if (!tag) return;
+    tag.name = newName.trim() || tag.name;
+    tag.editing = false;
+    triggerMemoryAutoSave();
+    renderTags();
+}
+
+function toggleTagMembership(tagId, docId) {
+    const tag = tags.find(t => t.id === tagId);
+    if (!tag || !docId) return;
+
+    const index = tag.documentIds.indexOf(docId);
+    if (index === -1) {
+        tag.documentIds.push(docId);
+    } else {
+        tag.documentIds.splice(index, 1);
+    }
+
+    triggerMemoryAutoSave();
+    renderTags();
+}
+
+function renameTag(tagId) {
+    const tag = tags.find(t => t.id === tagId);
+    if (!tag) return;
+    const newName = prompt('Rename tag:', tag.name);
+    if (newName && newName.trim()) {
+        tag.name = newName.trim();
+        triggerMemoryAutoSave();
+        renderTags();
+    }
+}
+
+function deleteTag(tagId) {
+    const index = tags.findIndex(t => t.id === tagId);
+    if (index === -1) return;
+    tags.splice(index, 1);
+    triggerMemoryAutoSave();
+    renderTags();
+}
+
+function removeDocumentFromAllTags(docId) {
+    tags.forEach(tag => {
+        const index = tag.documentIds.indexOf(docId);
+        if (index !== -1) {
+            tag.documentIds.splice(index, 1);
+        }
+    });
+}
+
 function switchdocument(id) {
     if (id === currentdocumentId) return;
     
@@ -331,6 +550,7 @@ function switchdocument(id) {
         document.title = `${targetdocument.name} - Freedom Docs`;
     }
     renderdocuments();
+    renderTags();
     updateUI();
     triggerMemoryAutoSave();
 }
@@ -363,13 +583,28 @@ function createNewdocument() {
     document.title = `${newName} - Freedom Docs`;
     
     renderdocuments();
+    renderTags();
     updateUI();
+    triggerMemoryAutoSave();
+}
+
+function createNewtag() {
+    const currentdocument = documents.find(t => t.id === currentdocumentId);
+    const newTag = {
+        id: nextTagId++,
+        name: `New Tag ${tags.length + 1}`,
+        documentIds: currentdocument ? [currentdocument.id] : [],
+        editing: true
+    };
+
+    tags.push(newTag);
+    renderTags();
     triggerMemoryAutoSave();
 }
 
 function closedocument(id) {
     if (documents.length === 1) {
-        alert("Workspace must preserve at least one active document record frame.");
+        showError("Document Error", "Workspace must preserve at least one active document record frame.");
         return;
     }
     
@@ -387,7 +622,9 @@ function closedocument(id) {
         document.getElementById('note-pad').value = structuralFallbackdocument.notePad || '';
         document.title = `${structuralFallbackdocument.name} - Freedom Docs`;
     }
+    removeDocumentFromAllTags(id);
     renderdocuments();
+    renderTags();
     updateUI();
     triggerMemoryAutoSave();
 }
@@ -616,7 +853,7 @@ async function execAction(action) {
             document.execCommand('insertText', false, text);
         } catch (err) {
             // Fallback warning for rigid browser sandboxes
-            alert("Your browser security blocks automatic pasting from this menu. Please use Ctrl+V (or Cmd+V) to paste.");
+            showError("Clipboard Error", "Your browser security blocks automatic pasting from this menu. Please use Ctrl+V (or Cmd+V) to paste.");
         }
     }
     
@@ -844,7 +1081,7 @@ function initiateVoiceTypingEngine() {
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-        alert("Your current browser does not support Voice Recognition features.");
+        showError("Voice Recognition Error", "Your current browser does not support Voice Recognition features.");
         return;
     }
 
@@ -880,7 +1117,7 @@ function initiateVoiceTypingEngine() {
     voiceRecognitionInstance.onerror = (err) => {
         console.error("Speech capturing operational subsystem fault error context:", err);
         terminateVoiceTrackingState();
-        alert("An error occurred with the voice recognition system. Voice recognition has been terminated. Please try again.");
+        showError("Voice Recognition Error", "An error occurred with the voice recognition system. Voice recognition has been terminated. Please try again.");
     };
 
     voiceRecognitionInstance.onend = () => {
@@ -986,6 +1223,26 @@ function toggleZenMode() {
         toolbar.classList.toggle('collapsed');
     }
     console.log("Zen Mode toggled successfully.");
+}
+
+//shows a temporary error message popup with a title and description, 
+// sliding in from the top and then out after a few seconds, used instead of alerts
+function showError(title, desc) {
+    const popup = document.getElementById('error-popup');
+    const titleEl = document.getElementById('error-title');
+    const descEl = document.getElementById('error-desc');
+
+    // Set the text
+    titleEl.innerText = title;
+    descEl.innerText = desc;
+
+    // Slide it in
+    popup.classList.add('show');
+
+    // Slide it back out after 4 seconds
+    setTimeout(() => {
+        popup.classList.remove('show');
+    }, 3000);
 }
 /**
  * Intercept your application's central mutation listener hooks 
