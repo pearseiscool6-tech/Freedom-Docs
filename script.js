@@ -212,10 +212,7 @@ function toggleBugModal(show) {
     }
 }
 
-function submitBugReport(e) {
-    e.preventDefault();
-    const userEmail = document.getElementById('bug-user-email').value;
-    const bugDescription = document.getElementById('bug-desc').value;
+function sendBugReportEmail() {
     const activedocument = documents.find(t => t.id === currentdocumentId);
     const documentName = activedocument ? activedocument.name : "Unknown document";
     
@@ -223,8 +220,8 @@ function submitBugReport(e) {
     const subject = encodeURIComponent(`Bug Report - Freedom Docs: ${documentName}`);
     
     const bodyText = encodeURIComponent(
-        `User Contact Email: ${userEmail}\n\n` +
-        `Description of Bug:\n${bugDescription}\n\n` +
+        `User Contact Email: Your email here ...\n\n` +
+        `Description of Bug: Describe the bug and steps to reproduce\n\n` +
         `-------------------------------------\n` +
         `DEBUG TELEMETRY SYSTEM LOGS:\n` +
         `-------------------------------------\n` +
